@@ -51,6 +51,7 @@ public class UserService implements IUserService{
     }
 
     @Override
+    @Transactional
     public User updateUser(Long id, CreateUserDTO dto) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));

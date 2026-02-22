@@ -9,6 +9,7 @@ import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class AvailabilityService implements IAvailabilityService {
 
 
     @Override
+    @Transactional
     public Availability createAvailability(CreateAvailabilityDTO dto) {
         Airbnb airbnb = airbnbRepository.findById(dto.getAirbnbId())
                 .orElseThrow(() -> new ResourceNotFoundException("Airbnb with Id:"+ dto.getAirbnbId() +" not found"));
@@ -29,6 +31,7 @@ public class AvailabilityService implements IAvailabilityService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Availability> checkAvailability(Long airbnbId) {
         return availabilityRepository.findByAirbnbId(airbnbId);
     }
