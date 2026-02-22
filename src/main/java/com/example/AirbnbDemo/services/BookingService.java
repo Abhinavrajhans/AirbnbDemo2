@@ -12,6 +12,8 @@ import com.example.AirbnbDemo.repository.writes.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,8 +32,14 @@ public class BookingService implements IBookingService {
         Airbnb airbnb=airbnbRepository.findById(dto.getAirbnbId())
                 .orElseThrow(()->new ResourceNotFoundException("Airbnb with Id :"+ dto.getAirbnbId() +" not found"));
 
+        LocalDate checkIn = dto.getCheckInDate();
+        LocalDate checkOut = dto.getCheckOutDate();
+        long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
+        double totalPrice = nights * airbnb.getPricePerNight();
+
+
         String idempotencyKey = UUID.randomUUID().toString();
-        Booking booking = BookingMapper.toEntity(dto,user,airbnb,idempotencyKey);
+        Booking booking = BookingMapper.toEntity(dto,user,airbnb,idempotencyKey,totalPrice);
         return bookingRepository.save(booking);
     }
 

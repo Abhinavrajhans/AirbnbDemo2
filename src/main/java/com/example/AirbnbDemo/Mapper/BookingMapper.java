@@ -9,11 +9,11 @@ import com.example.AirbnbDemo.models.User;
 public class BookingMapper {
 
     public static Booking toEntity(CreateBookingDTO dto,User user,Airbnb airbnb
-            ,String idempotencyKey){
+            ,String idempotencyKey,double totalPrice){
         return Booking.builder()
                 .user(user)
                 .airbnb(airbnb)
-                .totalPrice(dto.getTotalPrice())
+                .totalPrice(totalPrice)
                 .idempotencyKey(idempotencyKey)
                 .checkInDate(dto.getCheckInDate())
                 .checkOutDate(dto.getCheckOutDate())

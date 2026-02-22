@@ -6,6 +6,7 @@ import com.example.AirbnbDemo.dtos.CreateAvailabilityDTO;
 import com.example.AirbnbDemo.services.IAvailabilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/availability")
 @RequiredArgsConstructor
+@Slf4j
 public class AvailabilityController {
 
     private final IAvailabilityService availabilityService;
@@ -22,6 +24,7 @@ public class AvailabilityController {
 
     @PostMapping
     public ResponseEntity<AvailabilityDTO> create(@Valid @RequestBody CreateAvailabilityDTO dto) {
+        log.info("Request to create availability : {}", dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(AvailabilityMapper.toDTO(availabilityService.createAvailability(dto)));
     }
 

@@ -16,8 +16,6 @@ public class CreateBookingDTO {
     private Long userId;
     @NotNull(message="Airbnb Id is Required")
     private Long airbnbId;
-    @NotNull(message="TotalPrice Id is Required")
-    private double totalPrice;
     @NotNull(message="CheckInDate is Required")
     private LocalDate checkInDate;
     @NotNull(message="CheckOutDate is Required")
