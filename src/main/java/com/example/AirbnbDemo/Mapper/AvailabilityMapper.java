@@ -21,7 +21,7 @@ public class AvailabilityMapper {
         return AvailabilityDTO.builder()
                 .id(availability.getId())
                 .airbnbId(availability.getAirbnb().getId())
-                .bookingId(availability.getBooking().getId())
+                .bookingId(availability.getBooking() != null ? availability.getBooking().getId() : null)
                 .isAvailable(availability.getIsAvailable())
                 .date(availability.getDate())
                 .build();

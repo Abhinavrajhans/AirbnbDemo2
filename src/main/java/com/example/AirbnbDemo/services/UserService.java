@@ -53,7 +53,7 @@ public class UserService implements IUserService{
     @Override
     public User updateUser(Long id, CreateUserDTO dto) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         userRepository.findByEmail(dto.getEmail())
                 .ifPresent(otherUser -> {
                     if (!otherUser.getId().equals(id)) {
@@ -75,7 +75,7 @@ public class UserService implements IUserService{
     @Override
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
+            throw new ResourceNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }
