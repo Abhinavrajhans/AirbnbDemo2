@@ -54,6 +54,13 @@ public class UserService implements IUserService{
     public User updateUser(Long id, CreateUserDTO dto) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        userRepository.findByEmail(dto.getEmail())
+                .ifPresent(otherUser -> {
+                    if (!otherUser.getId().equals(id)) {
+                        throw new UserEmailAlreadyExistsException("Email already in use: " + dto.getEmail());
+                    }
+                });
+
         existingUser.setName(dto.getName());
         existingUser.setEmail(dto.getEmail());
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
@@ -65,6 +72,7 @@ public class UserService implements IUserService{
 
 
     @Transactional
+    @Override
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found with id: " + id);

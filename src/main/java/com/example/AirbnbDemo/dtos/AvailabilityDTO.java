@@ -13,8 +13,8 @@ import java.time.LocalDate;
 @Builder
 public class AvailabilityDTO {
     private Long id;
-    private Airbnb airbnb;
+    private Long airbnbId;
     private LocalDate date;
-    private Booking booking; // this can be null
+    private Long bookingId; // this can be null
     private Boolean isAvailable;
 }

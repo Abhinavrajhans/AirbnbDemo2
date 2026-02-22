@@ -23,8 +23,9 @@ public class BookingMapper {
 
     public static BookingDTO toDTO(Booking entity){
         return BookingDTO.builder()
-                .user(entity.getUser())
-                .airbnb(entity.getAirbnb())
+                .id(entity.getId())
+                .userId(entity.getUser().getId())
+                .airbnbId(entity.getAirbnb().getId())
                 .totalPrice(entity.getTotalPrice())
                 .status(entity.getStatus())
                 .checkInDate(entity.getCheckInDate())

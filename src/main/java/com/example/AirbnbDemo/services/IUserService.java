@@ -12,6 +12,6 @@ public interface IUserService {
     User getUserById(Long id);
     User getUserByEmail(String email);
     List<User> getAllUsers();
-    User updateUser(Long id, @Valid @RequestBody CreateUserDTO dto);
+    User updateUser(Long id,CreateUserDTO dto);
     void deleteUser(Long id);
 }

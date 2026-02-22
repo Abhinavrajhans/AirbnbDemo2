@@ -11,7 +11,7 @@ public interface IAirbnbService {
     Airbnb createAirbnb(CreateAirbnbDTO dto);
     Airbnb getAirbnbById(Long id);
     List<Airbnb> getAllAirbnbs();
-    Airbnb updateAirbnb(Long id, @Valid @RequestBody CreateAirbnbDTO dto);
+    Airbnb updateAirbnb(Long id,CreateAirbnbDTO dto);
     void deleteAirbnb(Long id);
 
 }

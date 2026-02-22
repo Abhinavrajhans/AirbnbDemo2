@@ -14,8 +14,8 @@ import java.time.LocalDate;
 @Builder
 public class BookingDTO {
     private Long id;
-    private User user;
-    private Airbnb airbnb;
+    private Long userId;
+    private Long airbnbId;
     private double totalPrice;
     private BookingStatus status;
     private String idempotencyKey;

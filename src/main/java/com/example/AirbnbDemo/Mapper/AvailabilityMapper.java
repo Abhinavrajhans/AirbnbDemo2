@@ -20,8 +20,8 @@ public class AvailabilityMapper {
     public static AvailabilityDTO toDTO(Availability availability) {
         return AvailabilityDTO.builder()
                 .id(availability.getId())
-                .airbnb(availability.getAirbnb())
-                .booking(availability.getBooking())
+                .airbnbId(availability.getAirbnb().getId())
+                .bookingId(availability.getBooking().getId())
                 .isAvailable(availability.getIsAvailable())
                 .date(availability.getDate())
                 .build();
