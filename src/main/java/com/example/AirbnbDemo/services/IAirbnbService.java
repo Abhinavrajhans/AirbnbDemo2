@@ -1,9 +1,7 @@
 package com.example.AirbnbDemo.services;
 
 import com.example.AirbnbDemo.dtos.CreateAirbnbDTO;
-import com.example.AirbnbDemo.dtos.CreateUserDTO;
 import com.example.AirbnbDemo.models.Airbnb;
-import com.example.AirbnbDemo.models.User;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.RequestBody;
 

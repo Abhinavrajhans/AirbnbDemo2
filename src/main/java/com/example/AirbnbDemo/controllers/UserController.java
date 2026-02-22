@@ -8,14 +8,14 @@ import com.example.AirbnbDemo.models.User;
 import com.example.AirbnbDemo.services.IUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -25,7 +25,7 @@ public class UserController {
     public ResponseEntity<UserDTO> CreateUser(@Valid @RequestBody CreateUserDTO dto) {
         User user=userService.createUser(dto);
         UserDTO userDTO= UserMapper.toDTO(user);
-        return ResponseEntity.ok(userDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
     }
 
 
