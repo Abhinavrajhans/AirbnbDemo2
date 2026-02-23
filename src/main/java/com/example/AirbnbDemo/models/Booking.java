@@ -40,4 +40,8 @@ public class Booking extends BaseModel {
     @Column(nullable = false)
     private LocalDate checkOutDate;
 
+    public String toString(){
+        return user.getId()+" "+airbnb.getId()+" "+totalPrice;
+    }
+
 }

@@ -30,6 +30,8 @@ public class BookingMapper {
                 .status(entity.getStatus())
                 .checkInDate(entity.getCheckInDate())
                 .checkOutDate(entity.getCheckOutDate())
+                .createdAt(entity.getCreatedDate())
+                .updatedAt(entity.getUpdatedAt())
                 .build();
     }
 }

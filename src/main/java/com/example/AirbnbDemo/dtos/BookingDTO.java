@@ -6,6 +6,7 @@ import com.example.AirbnbDemo.models.User;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -21,4 +22,6 @@ public class BookingDTO {
     private String idempotencyKey;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
