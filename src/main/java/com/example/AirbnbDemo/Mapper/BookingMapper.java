@@ -5,6 +5,9 @@ import com.example.AirbnbDemo.dtos.CreateBookingDTO;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.Booking;
 import com.example.AirbnbDemo.models.User;
+import com.example.AirbnbDemo.models.readModels.BookingReadModel;
+
+import java.time.LocalDate;
 
 public class BookingMapper {
 
@@ -32,6 +35,19 @@ public class BookingMapper {
                 .checkOutDate(entity.getCheckOutDate())
                 .createdAt(entity.getCreatedDate())
                 .updatedAt(entity.getUpdatedAt())
+                .build();
+    }
+
+    public static BookingReadModel toReadModel(Booking booking){
+        return BookingReadModel.builder()
+                .id(booking.getId())
+                .userId(booking.getUser().getId())
+                .airbnbId(booking.getAirbnb().getId())
+                .totalPrice(booking.getTotalPrice())
+                .bookingStatus(booking.getStatus().name())
+                .idempotencyKey(booking.getIdempotencyKey())
+                .checkInDate(booking.getCheckInDate())
+                .checkOutDate(booking.getCheckOutDate())
                 .build();
     }
 }

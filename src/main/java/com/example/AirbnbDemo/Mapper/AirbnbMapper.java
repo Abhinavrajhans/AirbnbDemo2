@@ -3,6 +3,10 @@ package com.example.AirbnbDemo.Mapper;
 import com.example.AirbnbDemo.dtos.AirbnbDTO;
 import com.example.AirbnbDemo.dtos.CreateAirbnbDTO;
 import com.example.AirbnbDemo.models.Airbnb;
+import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
+import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
+
+import java.util.List;
 
 public class AirbnbMapper {
 
@@ -22,6 +26,17 @@ public class AirbnbMapper {
                 .description(entity.getDescription())
                 .pricePerNight(entity.getPricePerNight())
                 .location(entity.getLocation())
+                .build();
+    }
+
+    public static AirbnbReadModel toReadModel(Airbnb airbnb,List<AvailabilityReadModel> availabilityReadModel){
+        return AirbnbReadModel.builder()
+                .id(airbnb.getId())
+                .name(airbnb.getName())
+                .description(airbnb.getDescription())
+                .location(airbnb.getLocation())
+                .pricePerNight(airbnb.getPricePerNight())
+                .availability(availabilityReadModel)
                 .build();
     }
 }
