@@ -4,7 +4,7 @@ package com.example.AirbnbDemo.controllers;
 import com.example.AirbnbDemo.Mapper.AirbnbMapper;
 import com.example.AirbnbDemo.dtos.AirbnbDTO;
 import com.example.AirbnbDemo.dtos.CreateAirbnbDTO;
-import com.example.AirbnbDemo.models.Airbnb;
+import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
 import com.example.AirbnbDemo.services.AirbnbService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,15 +27,14 @@ public class AirbnbController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AirbnbDTO> getAirbnbById(@PathVariable Long id) {
-        Airbnb airbnb= airbnbService.getAirbnbById(id);
-        return ResponseEntity.ok(AirbnbMapper.toDTO(airbnb));
+    public ResponseEntity<AirbnbReadModel> getAirbnbById(@PathVariable Long id) {
+        AirbnbReadModel airbnb= airbnbService.getAirbnbById(id);
+        return ResponseEntity.ok(airbnb);
     }
 
     @GetMapping
-    public ResponseEntity<List<AirbnbDTO>> getAllAirbnbs() {
-        List<AirbnbDTO> airbnbDTOList=airbnbService.getAllAirbnbs().stream().map(AirbnbMapper::toDTO).toList();
-        return ResponseEntity.ok(airbnbDTOList);
+    public ResponseEntity<List<AirbnbReadModel>> getAllAirbnbs() {
+        return ResponseEntity.ok(airbnbService.getAllAirbnbs());
     }
 
 

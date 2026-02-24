@@ -29,14 +29,14 @@ public class AirbnbMapper {
                 .build();
     }
 
-    public static AirbnbReadModel toReadModel(Airbnb airbnb,List<AvailabilityReadModel> availabilityReadModel){
+    public static AirbnbReadModel toReadModel(Airbnb airbnb){
         return AirbnbReadModel.builder()
                 .id(airbnb.getId())
                 .name(airbnb.getName())
                 .description(airbnb.getDescription())
                 .location(airbnb.getLocation())
                 .pricePerNight(airbnb.getPricePerNight())
-                .availability(availabilityReadModel)
+//                .availability(availabilityReadModel)
                 .build();
     }
 }

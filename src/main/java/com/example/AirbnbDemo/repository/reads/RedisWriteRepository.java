@@ -35,9 +35,18 @@ public class RedisWriteRepository {
             save(RedisReadRepository.AVAILABLE_KEY_PREFIX + model.getId(), model);
         }
 
-        public void writeAirbnb(Airbnb airbnb, List<AvailabilityReadModel> availabilities) {
-            AirbnbReadModel model = AirbnbMapper.toReadModel(airbnb, availabilities);
+        public void writeAirbnb(Airbnb airbnb) {
+            AirbnbReadModel model = AirbnbMapper.toReadModel(airbnb);
             save(RedisReadRepository.AIRBNB_KEY_PREFIX + airbnb.getId(), model);
+        }
+
+        public void deleteAirbnb(Long id) {
+            String key=RedisReadRepository.AIRBNB_KEY_PREFIX + id;
+            delete(key);
+        }
+
+        private void delete(String key){
+            redisTemplate.delete(key);
         }
 
         private void save(String key, Object value) {

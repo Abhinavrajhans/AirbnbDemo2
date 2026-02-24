@@ -12,6 +12,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,16 +29,16 @@ public class RedisReadRepository {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
-    public AirbnbReadModel getAirbnbById(Long id) {
-        return getByKey(AIRBNB_KEY_PREFIX + id, AirbnbReadModel.class);
+    public Optional<AirbnbReadModel> getAirbnbById(Long id) {
+        return Optional.ofNullable(getByKey(AIRBNB_KEY_PREFIX + id, AirbnbReadModel.class));
     }
 
-    public BookingReadModel getBookingById(Long id) {
-        return getByKey(BOOKING_KEY_PREFIX + id, BookingReadModel.class);
+    public Optional<BookingReadModel> getBookingById(Long id) {
+        return Optional.ofNullable(getByKey(BOOKING_KEY_PREFIX + id, BookingReadModel.class));
     }
 
-    public AvailabilityReadModel getAvailabilityById(Long id) {
-        return getByKey(AVAILABLE_KEY_PREFIX + id, AvailabilityReadModel.class);
+    public Optional<AvailabilityReadModel> getAvailabilityById(Long id) {
+        return Optional.ofNullable(getByKey(AVAILABLE_KEY_PREFIX + id, AvailabilityReadModel.class));
     }
 
     public List<AirbnbReadModel> getAllAirbnbs() {

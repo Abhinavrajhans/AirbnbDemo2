@@ -15,5 +15,5 @@ public class AirbnbReadModel {
     private String description;
     private String location;
     private Long pricePerNight;
-    private List<AvailabilityReadModel> availability;
+    //private List<AvailabilityReadModel> availability;
 }
