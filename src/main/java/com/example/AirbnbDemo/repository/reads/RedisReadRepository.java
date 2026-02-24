@@ -45,12 +45,14 @@ public class RedisReadRepository {
     }
 
     public BookingReadModel findBookingByIdempotencyKey(String idempotencyKey) {
-        log.info("Finding Booking for idempotency key {}",idempotencyKey);
-        String key=IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
+        log.info("Finding Booking for idempotency key {}", idempotencyKey);
+        String key = IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
         String bookingId = redisTemplate.opsForValue().get(key);
-        log.info("bookingId found for idempotency key {}",bookingId);
+        if (bookingId == null) {
+            log.info("No idempotency key found in Redis for {}", idempotencyKey);
+            return null;
+        }
         String bookingKey = BOOKING_KEY_PREFIX + bookingId;
-        log.info("booking Key for idempotency key {}", bookingKey);
         return getByKey(bookingKey, BookingReadModel.class);
     }
 
