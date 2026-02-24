@@ -15,7 +15,7 @@ import java.util.List;
 public class RedisLockStrategy implements ConcurrencyControlStrategy {
 
     private static final String LOCK_KEY_PREFIX="lock:availability:";
-    private static final Duration LOCK_TIMEOUT = Duration.ofMinutes(2); // make this configurable
+    private static final Duration LOCK_TIMEOUT = Duration.ofMinutes(5); // make this configurable
 
     private final RedisTemplate<String,String> redisTemplate;
     private final AvailabilityRepository availabilityRepository;
