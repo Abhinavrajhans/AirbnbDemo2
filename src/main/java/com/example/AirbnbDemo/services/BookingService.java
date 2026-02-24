@@ -57,6 +57,10 @@ public class BookingService implements IBookingService {
         if(checkOut.isBefore(LocalDate.now())) {
             throw new RuntimeException("Check-out date must be today or in the future");
         }
+        if(!checkIn.equals(checkOut)) {
+            throw new RuntimeException("Check-in date can be equal to Check-out date");
+        }
+
         List<Availability> availabilities =
                 concurrencyControlStrategy.lockAndCheckAvailability(
                         dto.getAirbnbId(), checkIn, realCheckOut, dto.getUserId()
