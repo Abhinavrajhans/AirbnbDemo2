@@ -17,7 +17,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
 
     @Modifying
     @Transactional
-    @Query("UPDATE Availability a SET a.booking.id = :bookingId " +
+    @Query("UPDATE Availability a SET a.booking.id = :bookingId, a.isAvailable = false " +
             "WHERE a.airbnb.id = :airbnbId AND a.date BETWEEN :startDate AND :endDate")
     void updateBookingIdByAirbnbIdAndDateBetween(
             @Param("bookingId") Long bookingId,
@@ -28,7 +28,7 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE availabilities SET booking_id = NULL " +
+    @Query(value = "UPDATE availabilities SET booking_id = NULL, is_available = true " +
             "WHERE airbnb_id = :airbnbId AND date BETWEEN :startDate AND :endDate",
             nativeQuery = true)
     void clearBookingByAirbnbIdAndDateBetween(
