@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface IBookingService {
     Booking createBooking(CreateBookingDTO dto);
-    Booking updateBooking(UpdateBookingRequest request);
+    String updateBooking(UpdateBookingRequest request);
     Booking getBookingById(Long id);
     List<Booking> getAllBookings();
     List<Booking> getUserBookingHistory(Long userId);

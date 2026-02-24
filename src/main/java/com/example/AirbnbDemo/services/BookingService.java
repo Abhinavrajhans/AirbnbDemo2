@@ -5,6 +5,7 @@ import com.example.AirbnbDemo.dtos.CreateBookingDTO;
 import com.example.AirbnbDemo.dtos.UpdateBookingRequest;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.*;
+import com.example.AirbnbDemo.models.readModels.BookingReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
@@ -57,7 +58,7 @@ public class BookingService implements IBookingService {
         if(checkOut.isBefore(LocalDate.now())) {
             throw new RuntimeException("Check-out date must be today or in the future");
         }
-        if(!checkIn.equals(checkOut)) {
+        if(checkIn.equals(checkOut)) {
             throw new RuntimeException("Check-in date can be equal to Check-out date");
         }
 
@@ -80,21 +81,22 @@ public class BookingService implements IBookingService {
 
     @Override
     @Transactional
-    public Booking updateBooking(UpdateBookingRequest request) {
+    public String updateBooking(UpdateBookingRequest request) {
         log.info("Updating Booking for idempotency key {}",request.getIdempotencyKey());
-        Booking booking = idempotencyService.findBookingByIdempotencyKey(request.getIdempotencyKey())
+        BookingReadModel bookingReadModel = idempotencyService.findBookingByIdempotencyKey(request.getIdempotencyKey())
                     .orElseThrow(()-> new ResourceNotFoundException("Booking with Idempotency Key:"+request.getIdempotencyKey()+" not found"));
         log.info("booking found for idempotency key {}",request.getIdempotencyKey());
-        log.info("booking status {}:",booking.getStatus());
-        if(booking.getStatus() != BookingStatus.PENDING) {
+        log.info("booking status {}:",bookingReadModel.getBookingStatus());
+        BookingStatus status= BookingStatus.valueOf(bookingReadModel.getBookingStatus());
+        if(status != BookingStatus.PENDING) {
             throw new RuntimeException("Booking status is not PENDING It is Already Processed.");
         }
 
         Map<String, Object> payload = Map.of(
-                "bookingId",    booking.getId().toString(),
-                "airbnbId",     booking.getAirbnb().getId().toString(),
-                "checkInDate",  booking.getCheckInDate().toString(),
-                "checkOutDate", booking.getCheckOutDate().toString()
+                "bookingId",    bookingReadModel.getId().toString(),
+                "airbnbId",     bookingReadModel.getAirbnbId().toString(),
+                "checkInDate",  bookingReadModel.getCheckInDate().toString(),
+                "checkOutDate", bookingReadModel.getCheckOutDate().toString()
         );
         if(request.getBookingStatus()==BookingStatus.CONFIRMED){
             sagaEventPublisher.publishEvent("BOOKING_CONFIRM_REQUESTED","CONFIRM_BOOKING",payload);
@@ -102,7 +104,7 @@ public class BookingService implements IBookingService {
         else if(request.getBookingStatus()==BookingStatus.CANCELLED) {
             sagaEventPublisher.publishEvent("BOOKING_CANCEL_REQUESTED","CANCEL_BOOKING",payload);
         }
-        return booking;
+        return "Booking Is In Progess......";
     }
 
     @Override

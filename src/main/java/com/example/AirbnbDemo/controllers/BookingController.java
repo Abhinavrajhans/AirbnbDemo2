@@ -30,10 +30,9 @@ public class BookingController {
     }
 
     @PutMapping
-    public ResponseEntity<BookingDTO> updateBooking(@Valid @RequestBody UpdateBookingRequest dto) {
-        Booking booking = bookingService.updateBooking(dto);
-        BookingDTO bookingDTO = BookingMapper.toDTO(booking);
-        return ResponseEntity.ok(bookingDTO);
+    public ResponseEntity<String> updateBooking(@Valid @RequestBody UpdateBookingRequest dto) {
+        String message= bookingService.updateBooking(dto);
+        return ResponseEntity.ok(message);
     }
 
 

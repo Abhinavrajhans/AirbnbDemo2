@@ -30,17 +30,15 @@ public class IdempotencyService implements IIdempotencyService{
     }
 
     @Override
-    public Optional<Booking> findBookingByIdempotencyKey(String idempotencyKey) {
+    public Optional<BookingReadModel> findBookingByIdempotencyKey(String idempotencyKey) {
         BookingReadModel bookingReadModel = redisReadRepository.findBookingByIdempotencyKey(idempotencyKey);
         if(bookingReadModel!=null){
-            User user= userRepository.findById(bookingReadModel.getUserId())
-                    .orElseThrow(()->new ResourceNotFoundException("User with ID:"+bookingReadModel.getUserId()+" not found"));
-            Airbnb airbnb = airbnbRepository.findById(bookingReadModel.getAirbnbId())
-                    .orElseThrow(()->new ResourceNotFoundException("Airbnb with ID:"+bookingReadModel.getAirbnbId()+" not found"));
-
-            Booking booking = BookingMapper.ToEntityFromReadModel(bookingReadModel,user,airbnb);
-            return Optional.of(booking);
+            return Optional.of(bookingReadModel);
         }
-        return bookingRepository.findByIdempotencyKey(idempotencyKey);
+        Booking booking = bookingRepository.findByIdempotencyKey(idempotencyKey)
+                .orElse(null);
+        if(booking!=null) return Optional.of(BookingMapper.toReadModel(booking));
+        return Optional.empty();
+
     }
 }
