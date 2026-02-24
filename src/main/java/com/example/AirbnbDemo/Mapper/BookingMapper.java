@@ -4,8 +4,11 @@ import com.example.AirbnbDemo.dtos.BookingDTO;
 import com.example.AirbnbDemo.dtos.CreateBookingDTO;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.Booking;
+import com.example.AirbnbDemo.models.BookingStatus;
 import com.example.AirbnbDemo.models.User;
 import com.example.AirbnbDemo.models.readModels.BookingReadModel;
+import jakarta.persistence.*;
+import lombok.Builder;
 
 import java.time.LocalDate;
 
@@ -31,6 +34,7 @@ public class BookingMapper {
                 .airbnbId(entity.getAirbnb().getId())
                 .totalPrice(entity.getTotalPrice())
                 .status(entity.getStatus())
+                .idempotencyKey(entity.getIdempotencyKey())
                 .checkInDate(entity.getCheckInDate())
                 .checkOutDate(entity.getCheckOutDate())
                 .createdAt(entity.getCreatedDate())
@@ -49,5 +53,20 @@ public class BookingMapper {
                 .checkInDate(booking.getCheckInDate())
                 .checkOutDate(booking.getCheckOutDate())
                 .build();
+    }
+
+
+    public static Booking ToEntityFromReadModel(BookingReadModel bookingReadModel,User user,Airbnb airbnb){
+        Booking booking = Booking.builder()
+                .user(user)
+                .airbnb(airbnb)
+                .totalPrice(bookingReadModel.getTotalPrice())
+                .status(BookingStatus.valueOf(bookingReadModel.getBookingStatus()))
+                .idempotencyKey(bookingReadModel.getIdempotencyKey())
+                .checkInDate(bookingReadModel.getCheckInDate())
+                .checkOutDate(bookingReadModel.getCheckOutDate())
+                .build();
+        booking.setId(bookingReadModel.getId());
+        return booking;
     }
 }
