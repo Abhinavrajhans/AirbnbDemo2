@@ -28,7 +28,7 @@ public class SagaEventProcessor {
             case "BOOKING_CANCEL_REQUESTED":
                 bookingEventHandler.handleBookingCancelRequest(sagaEvent);
                 break;
-            case "BOOKING_CANCELED":
+            case "BOOKING_CANCELLED":
                 availabilityEventHandler.handleBookingCancelled(sagaEvent);
                 break;
             case "BOOKING_COMPENSATED":
