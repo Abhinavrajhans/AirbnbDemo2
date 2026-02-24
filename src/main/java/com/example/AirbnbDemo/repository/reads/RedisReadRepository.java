@@ -41,10 +41,11 @@ public class RedisReadRepository {
         return getAllByPrefix(AIRBNB_KEY_PREFIX, AirbnbReadModel.class);
     }
 
-    public Optional<BookingReadModel> findBookingByIdempotencyKey(String idempotencyKey) {
+    public BookingReadModel findBookingByIdempotencyKey(String idempotencyKey) {
         return getAllByPrefix(BOOKING_KEY_PREFIX, BookingReadModel.class).stream()
                 .filter(m -> idempotencyKey.equals(m.getIdempotencyKey()))
-                .findFirst();
+                .findFirst()
+                .orElse(null);
     }
 
     // ─── private helpers ───────────────────────────────────────────
