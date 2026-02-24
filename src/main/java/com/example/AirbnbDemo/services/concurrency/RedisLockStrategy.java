@@ -47,7 +47,7 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
     }
 
     private String generateLockKey(Long airbnbId, LocalDate checkInDate, LocalDate checkOutDate) {
-        return LOCK_KEY_PREFIX + airbnbId + checkInDate + checkOutDate;
+        return LOCK_KEY_PREFIX + airbnbId +":"+checkInDate +":"+checkOutDate;
     }
 
 }
