@@ -3,6 +3,7 @@ package com.example.AirbnbDemo.controllers;
 import com.example.AirbnbDemo.Mapper.BookingMapper;
 import com.example.AirbnbDemo.dtos.BookingDTO;
 import com.example.AirbnbDemo.dtos.CreateBookingDTO;
+import com.example.AirbnbDemo.dtos.UpdateBookingRequest;
 import com.example.AirbnbDemo.models.Booking;
 import com.example.AirbnbDemo.services.IBookingService;
 import jakarta.validation.Valid;
@@ -22,10 +23,17 @@ public class BookingController {
 
 
     @PostMapping
-    public ResponseEntity<BookingDTO> CreateBooking(@Valid @RequestBody CreateBookingDTO dto) {
+    public ResponseEntity<BookingDTO> createBooking(@Valid @RequestBody CreateBookingDTO dto) {
         Booking booking = bookingService.createBooking(dto);
         BookingDTO bookingDTO = BookingMapper.toDTO(booking);
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingDTO);
+    }
+
+    @PutMapping
+    public ResponseEntity<BookingDTO> updateBooking(@Valid @RequestBody UpdateBookingRequest dto) {
+        Booking booking = bookingService.updateBooking(dto);
+        BookingDTO bookingDTO = BookingMapper.toDTO(booking);
+        return ResponseEntity.ok(bookingDTO);
     }
 
 

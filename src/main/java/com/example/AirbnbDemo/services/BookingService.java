@@ -5,6 +5,7 @@ import com.example.AirbnbDemo.dtos.CreateBookingDTO;
 import com.example.AirbnbDemo.dtos.UpdateBookingRequest;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.*;
+import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import com.example.AirbnbDemo.repository.writes.BookingRepository;
@@ -34,18 +35,18 @@ public class BookingService implements IBookingService {
     private final AvailabilityRepository availabilityRepository;
     private final ConcurrencyControlStrategy concurrencyControlStrategy;
     private final SagaEventPublisher sagaEventPublisher;
+    private final RedisWriteRepository  redisWriteRepository;
 
     @Override
     public Booking createBooking(CreateBookingDTO dto) {
-        //Missing
-        //1. We are not checking that this airbnb is available between
-        // checkInDate and checkOutDate or not
-        // 2. After we are booking we have to mark the
-        // avaialability of the airbnb on those dates as false.
+
+        log.info("createBooking dto {}", dto);
         User user=userRepository.findById(dto.getUserId())
                 .orElseThrow(()->new ResourceNotFoundException("User with Id :"+ dto.getUserId() +" not found"));
+        log.info("Got User for Creating booking {}", user);
         Airbnb airbnb=airbnbRepository.findById(dto.getAirbnbId())
                 .orElseThrow(()->new ResourceNotFoundException("Airbnb with Id :"+ dto.getAirbnbId() +" not found"));
+        log.info("Got Airbnb Booking for Creating booking {}", airbnb);
         LocalDate checkIn = dto.getCheckInDate();
         LocalDate checkOut = dto.getCheckOutDate();
         LocalDate realCheckOut = checkOut.minusDays(1);
@@ -65,14 +66,11 @@ public class BookingService implements IBookingService {
         log.info("Creating booking for Airbnb {} | dates: {} → {} | total: {} | key: {}",
                 airbnb.getId(), checkIn, checkOut, totalPrice, idempotencyKey);
         Booking booking = BookingMapper.toEntity(dto, user, airbnb, idempotencyKey, totalPrice);
-        Map<String, Object> payload = Map.of(
-                "bookingId",    booking.getId().toString(),
-                "airbnbId",     booking.getAirbnb().getId().toString(),
-                "checkInDate",  booking.getCheckInDate().toString(),
-                "checkOutDate", booking.getCheckOutDate().toString()
-        );
-        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
-        return bookingRepository.save(booking);
+
+//        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
+        booking = bookingRepository.save(booking);
+        redisWriteRepository.writeBooking(booking);
+        return booking;
     }
 
     @Override
