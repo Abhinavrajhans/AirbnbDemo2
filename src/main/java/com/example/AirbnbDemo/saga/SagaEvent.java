@@ -18,4 +18,8 @@ public class SagaEvent implements Serializable {
     private Map<String,Object> payload;
     private LocalDateTime timestamp;
     private SagaStatus status;
+
+    public String toString(){
+        return eventType+" "+payload.get("bookingId")+" "+status;
+    }
 }

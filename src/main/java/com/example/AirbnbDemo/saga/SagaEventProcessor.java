@@ -15,6 +15,7 @@ public class SagaEventProcessor {
     private final AvailabilityEventHandler availabilityEventHandler;
 
     public void processEvent(SagaEvent sagaEvent) {
+        log.info("Processing SagaEvent In The Saga Event Processor : {}", sagaEvent.toString());
         switch(sagaEvent.getEventType()){
             case "BOOKING_CREATED":
                 log.info("Booking Created for booking id: {}",sagaEvent.getPayload().get("bookingId"));
