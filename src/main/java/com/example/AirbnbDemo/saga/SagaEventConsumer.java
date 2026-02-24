@@ -31,7 +31,9 @@ public class SagaEventConsumer {
         }
         catch (Exception e){
             log.error("Error Processing saga events: {}", e.getMessage());
-            throw new RuntimeException("Failed to process Saga Event",e);
+            //throw new RuntimeException("Failed to process Saga Event",e);
+            //Throwing from a @Scheduled method causes Spring to suppress future scheduled runs in some configurations.
+            // You should log-and-continue instead:
         }
     }
 }
