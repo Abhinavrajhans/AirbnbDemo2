@@ -2,23 +2,24 @@ package com.example.AirbnbDemo.services;
 
 import com.example.AirbnbDemo.Mapper.BookingMapper;
 import com.example.AirbnbDemo.dtos.CreateBookingDTO;
+import com.example.AirbnbDemo.dtos.UpdateBookingRequest;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
-import com.example.AirbnbDemo.models.Airbnb;
-import com.example.AirbnbDemo.models.Availability;
-import com.example.AirbnbDemo.models.Booking;
-import com.example.AirbnbDemo.models.User;
+import com.example.AirbnbDemo.models.*;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import com.example.AirbnbDemo.repository.writes.BookingRepository;
 import com.example.AirbnbDemo.repository.writes.UserRepository;
+import com.example.AirbnbDemo.saga.SagaEventPublisher;
 import com.example.AirbnbDemo.services.concurrency.ConcurrencyControlStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -29,8 +30,10 @@ public class BookingService implements IBookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final AirbnbRepository airbnbRepository;
+    private final IIdempotencyService  idempotencyService;
     private final AvailabilityRepository availabilityRepository;
     private final ConcurrencyControlStrategy concurrencyControlStrategy;
+    private final SagaEventPublisher sagaEventPublisher;
 
     @Override
     public Booking createBooking(CreateBookingDTO dto) {
@@ -62,7 +65,41 @@ public class BookingService implements IBookingService {
         log.info("Creating booking for Airbnb {} | dates: {} → {} | total: {} | key: {}",
                 airbnb.getId(), checkIn, checkOut, totalPrice, idempotencyKey);
         Booking booking = BookingMapper.toEntity(dto, user, airbnb, idempotencyKey, totalPrice);
+        Map<String, Object> payload = Map.of(
+                "bookingId",    booking.getId().toString(),
+                "airbnbId",     booking.getAirbnb().getId().toString(),
+                "checkInDate",  booking.getCheckInDate().toString(),
+                "checkOutDate", booking.getCheckOutDate().toString()
+        );
+        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
         return bookingRepository.save(booking);
+    }
+
+    @Override
+    @Transactional
+    public Booking updateBooking(UpdateBookingRequest request) {
+        log.info("Updating Booking for idempotency key {}",request.getIdempotencyKey());
+        Booking booking = idempotencyService.findBookingByIdempotencyKey(request.getIdempotencyKey())
+                    .orElseThrow(()-> new ResourceNotFoundException("Booking with Idempotency Key:"+request.getIdempotencyKey()+" not found"));
+        log.info("booking found for idempotency key {}",request.getIdempotencyKey());
+        log.info("booking status {}:",booking.getStatus());
+        if(booking.getStatus() != BookingStatus.PENDING) {
+            throw new RuntimeException("Booking status is not PENDING It is Already Processed.");
+        }
+
+        Map<String, Object> payload = Map.of(
+                "bookingId",    booking.getId().toString(),
+                "airbnbId",     booking.getAirbnb().getId().toString(),
+                "checkInDate",  booking.getCheckInDate().toString(),
+                "checkOutDate", booking.getCheckOutDate().toString()
+        );
+        if(request.getBookingStatus()==BookingStatus.CONFIRMED){
+            sagaEventPublisher.publishEvent("BOOKING_CONFIRM_REQUESTED","CONFIRM_BOOKING",payload);
+        }
+        else if(request.getBookingStatus()==BookingStatus.CANCELLED) {
+            sagaEventPublisher.publishEvent("BOOKING_CANCEL_REQUESTED","CANCEL_BOOKING",payload);
+        }
+        return booking;
     }
 
     @Override

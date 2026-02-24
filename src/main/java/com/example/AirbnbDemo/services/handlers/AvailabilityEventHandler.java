@@ -42,6 +42,7 @@ public class AvailabilityEventHandler {
     public void handleBookingCancelled(SagaEvent sagaEvent) {
         try{
             Map<String,Object> payload = sagaEvent.getPayload();
+            Long bookingid=Long.parseLong(payload.get("bookingId").toString());
             Long airbnbId=Long.parseLong(payload.get("bookingId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
