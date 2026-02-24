@@ -3,6 +3,7 @@ package com.example.AirbnbDemo.controllers;
 import com.example.AirbnbDemo.Mapper.AvailabilityMapper;
 import com.example.AirbnbDemo.dtos.AvailabilityDTO;
 import com.example.AirbnbDemo.dtos.CreateAvailabilityDTO;
+import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
 import com.example.AirbnbDemo.services.IAvailabilityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +32,7 @@ public class AvailabilityController {
 
 
     @GetMapping("/airbnb")
-    public ResponseEntity<List<AvailabilityDTO>> getAllAirbnbs(@RequestParam Long airbnbId) {
-        List<AvailabilityDTO> availabilityDTOList=availabilityService.checkAvailability(airbnbId).stream().map(AvailabilityMapper::toDTO).toList();
-        return ResponseEntity.ok(availabilityDTOList);
+    public ResponseEntity<List<AvailabilityReadModel>> getAllAirbnbs(@RequestParam Long airbnbId) {
+        return ResponseEntity.ok(availabilityService.checkAvailability(airbnbId));
     }
 }

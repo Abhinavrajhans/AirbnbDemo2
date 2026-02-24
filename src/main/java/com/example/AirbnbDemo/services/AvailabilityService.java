@@ -5,6 +5,9 @@ import com.example.AirbnbDemo.dtos.CreateAvailabilityDTO;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.Availability;
+import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
+import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
+import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,8 @@ public class AvailabilityService implements IAvailabilityService {
 
     private final AvailabilityRepository availabilityRepository;
     private final AirbnbRepository airbnbRepository;
+    private final RedisReadRepository redisReadRepository;
+    private final RedisWriteRepository redisWriteRepository;
 
 
     @Override
@@ -27,14 +32,15 @@ public class AvailabilityService implements IAvailabilityService {
         Airbnb airbnb = airbnbRepository.findById(dto.getAirbnbId())
                 .orElseThrow(() -> new ResourceNotFoundException("Airbnb with Id:"+ dto.getAirbnbId() +" not found"));
         Availability availability = AvailabilityMapper.toEntity(dto, airbnb);
-        return availabilityRepository.save(availability);
+        availability=availabilityRepository.save(availability);
+        redisWriteRepository.writeAvailability(availability);
+        return availability;
     }
+
 
     @Override
     @Transactional(readOnly = true)
-    public List<Availability> checkAvailability(Long airbnbId) {
-        return availabilityRepository.findByAirbnbId(airbnbId);
+    public List<AvailabilityReadModel> checkAvailability(Long airbnbId) {
+       return redisReadRepository.getAvailabilityByAirbnbId(airbnbId);
     }
-
-
 }
