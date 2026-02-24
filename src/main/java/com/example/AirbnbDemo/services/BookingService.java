@@ -38,6 +38,7 @@ public class BookingService implements IBookingService {
     private final RedisWriteRepository  redisWriteRepository;
 
     @Override
+    @Transactional
     public Booking createBooking(CreateBookingDTO dto) {
 
         log.info("createBooking dto {}", dto);

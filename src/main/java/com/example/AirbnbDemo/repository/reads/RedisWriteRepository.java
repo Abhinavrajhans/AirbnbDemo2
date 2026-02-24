@@ -27,6 +27,7 @@ public class RedisWriteRepository {
         public void writeBooking(Booking booking) {
             BookingReadModel model = BookingMapper.toReadModel(booking);
             save(RedisReadRepository.BOOKING_KEY_PREFIX + model.getId(), model);
+            save(RedisReadRepository.IDEMPOTENCY_KEY_PREFIX + model.getIdempotencyKey(), model.getId());
         }
 
         public void writeAvailability(Availability availability) {

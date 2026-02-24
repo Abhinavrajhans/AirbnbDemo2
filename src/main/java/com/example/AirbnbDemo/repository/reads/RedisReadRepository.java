@@ -4,6 +4,7 @@ import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
 import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
 import com.example.AirbnbDemo.models.readModels.BookingReadModel;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import tools.jackson.core.JacksonException;
@@ -11,16 +12,18 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class RedisReadRepository {
 
     public static final String AIRBNB_KEY_PREFIX = "airbnb:";
     public static final String BOOKING_KEY_PREFIX = "booking:";
     public static final String AVAILABLE_KEY_PREFIX = "available:";
+    public static final String IDEMPOTENCY_KEY_PREFIX = "idempotency:";
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -42,10 +45,13 @@ public class RedisReadRepository {
     }
 
     public BookingReadModel findBookingByIdempotencyKey(String idempotencyKey) {
-        return getAllByPrefix(BOOKING_KEY_PREFIX, BookingReadModel.class).stream()
-                .filter(m -> idempotencyKey.equals(m.getIdempotencyKey()))
-                .findFirst()
-                .orElse(null);
+        log.info("Finding Booking for idempotency key {}",idempotencyKey);
+        String key=IDEMPOTENCY_KEY_PREFIX + idempotencyKey;
+        String bookingId = redisTemplate.opsForValue().get(key);
+        log.info("bookingId found for idempotency key {}",bookingId);
+        String bookingKey = BOOKING_KEY_PREFIX + bookingId;
+        log.info("booking Key for idempotency key {}", bookingKey);
+        return getByKey(bookingKey, BookingReadModel.class);
     }
 
     // ─── private helpers ───────────────────────────────────────────
