@@ -44,21 +44,18 @@ public class RedisWriteRepository {
             }
         }
 
-        // Write all slots at once (for bulk operations)
-        public void writeAllAvailabilities(Long airbnbId, List<Availability> availabilities) {
+        public void writeAvailabilities(Long airbnbId, List<Availability> availabilities) {
+            if (availabilities == null || availabilities.isEmpty()) return;
             String hashKey = RedisReadRepository.AIRBNB_AVAILABILITY_PREFIX + airbnbId;
-            Map<String, String> entries = new HashMap<>();
             for (Availability a : availabilities) {
                 AvailabilityReadModel model = AvailabilityMapper.toReadModel(a);
                 try {
-                    entries.put(model.getDate(), objectMapper.writeValueAsString(model));
+                    redisTemplate.opsForHash().put(hashKey, model.getDate(), objectMapper.writeValueAsString(model));
                 } catch (JacksonException e) {
-                    throw new RuntimeException("Failed to serialize availability", e);
+                    throw new RuntimeException("Failed to serialize availability for airbnb " + airbnbId, e);
                 }
             }
-            redisTemplate.opsForHash().putAll(hashKey, entries);
         }
-
 
 
         public void writeAirbnb(Airbnb airbnb) {

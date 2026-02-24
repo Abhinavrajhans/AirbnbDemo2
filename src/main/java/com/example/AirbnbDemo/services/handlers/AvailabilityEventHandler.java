@@ -1,5 +1,6 @@
 package com.example.AirbnbDemo.services.handlers;
 
+import com.example.AirbnbDemo.models.Availability;
 import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import com.example.AirbnbDemo.saga.SagaEvent;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -40,6 +42,11 @@ public class AvailabilityEventHandler {
             log.info("updating the availability in db {}", sagaEvent.toString());
             availabilityRepository.updateBookingIdByAirbnbIdAndDateBetween(bookingId,airbnbId,checkInDate,realCheckOut);
             log.info("done updating the availability in db {}", sagaEvent.toString());
+
+            // 2. Re-fetch updated rows and sync to Redis
+            List<Availability> updated = availabilityRepository.findByAirbnbIdAndDateBetween(airbnbId, checkInDate, realCheckOut);
+            redisWriteRepository.writeAvailabilities(airbnbId, updated);
+
             //  DB now permanently records the booking — release the temporary lock
             concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut);
             log.info("Lock released after confirming booking {}", bookingId);
