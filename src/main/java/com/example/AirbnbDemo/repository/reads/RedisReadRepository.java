@@ -11,6 +11,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 @Repository
@@ -40,11 +41,10 @@ public class RedisReadRepository {
         return getAllByPrefix(AIRBNB_KEY_PREFIX, AirbnbReadModel.class);
     }
 
-    public BookingReadModel findBookingByIdempotencyKey(String idempotencyKey) {
+    public Optional<BookingReadModel> findBookingByIdempotencyKey(String idempotencyKey) {
         return getAllByPrefix(BOOKING_KEY_PREFIX, BookingReadModel.class).stream()
                 .filter(m -> idempotencyKey.equals(m.getIdempotencyKey()))
-                .findFirst()
-                .orElse(null);
+                .findFirst();
     }
 
     // ─── private helpers ───────────────────────────────────────────
