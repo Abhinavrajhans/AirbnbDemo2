@@ -28,10 +28,9 @@ public class BookingEventHandler {
         try{
             Map<String,Object> payload = sagaEvent.getPayload();
             Long bookingid=Long.parseLong(payload.get("bookingId").toString());
-            Long airbnbId=Long.parseLong(payload.get("bookingId").toString());
+            Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
-
             Booking booking=bookingRepository.findById(bookingid)
                     .orElseThrow(()-> new ResourceNotFoundException("Booking With Id:"+bookingid+" Not Found"));
             booking.setStatus(BookingStatus.CONFIRMED);
@@ -50,7 +49,7 @@ public class BookingEventHandler {
         try{
             Map<String,Object> payload = sagaEvent.getPayload();
             Long bookingid=Long.parseLong(payload.get("bookingId").toString());
-            Long airbnbId=Long.parseLong(payload.get("bookingId").toString());
+            Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
             Booking booking=bookingRepository.findById(bookingid)
