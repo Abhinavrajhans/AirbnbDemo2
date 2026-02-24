@@ -27,12 +27,12 @@ public class BookingEventHandler {
     public void handleBookingConfirmRequest(SagaEvent sagaEvent) {
         try{
             Map<String,Object> payload = sagaEvent.getPayload();
-            Long bookingid=Long.parseLong(payload.get("bookingId").toString());
+            Long bookingId=Long.parseLong(payload.get("bookingId").toString());
             Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
-            Booking booking=bookingRepository.findById(bookingid)
-                    .orElseThrow(()-> new ResourceNotFoundException("Booking With Id:"+bookingid+" Not Found"));
+            Booking booking=bookingRepository.findById(bookingId)
+                    .orElseThrow(()-> new ResourceNotFoundException("Booking With Id:"+bookingId+" Not Found"));
             booking.setStatus(BookingStatus.CONFIRMED);
             bookingRepository.save(booking);
             redisWriteRepository.writeBooking(booking);
@@ -48,12 +48,12 @@ public class BookingEventHandler {
     public void handleBookingCancelRequest(SagaEvent sagaEvent) {
         try{
             Map<String,Object> payload = sagaEvent.getPayload();
-            Long bookingid=Long.parseLong(payload.get("bookingId").toString());
+            Long bookingId=Long.parseLong(payload.get("bookingId").toString());
             Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
-            Booking booking=bookingRepository.findById(bookingid)
-                    .orElseThrow(()-> new ResourceNotFoundException("Booking With Id:"+bookingid+" Not Found"));
+            Booking booking=bookingRepository.findById(bookingId)
+                    .orElseThrow(()-> new ResourceNotFoundException("Booking With Id:"+bookingId+" Not Found"));
             booking.setStatus(BookingStatus.CANCELLED);
             bookingRepository.save(booking);
             redisWriteRepository.writeBooking(booking);
