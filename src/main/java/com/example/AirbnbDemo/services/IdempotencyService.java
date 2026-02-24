@@ -31,9 +31,7 @@ public class IdempotencyService implements IIdempotencyService{
 
     @Override
     public Optional<Booking> findBookingByIdempotencyKey(String idempotencyKey) {
-        BookingReadModel bookingReadModel = redisReadRepository.findBookingByIdempotencyKey(idempotencyKey)
-                .orElseThrow(() -> new ResourceNotFoundException("BookingReadModel with Idempotency key:"+idempotencyKey+" not found"));
-
+        BookingReadModel bookingReadModel = redisReadRepository.findBookingByIdempotencyKey(idempotencyKey);
         if(bookingReadModel!=null){
             User user= userRepository.findById(bookingReadModel.getUserId())
                     .orElseThrow(()->new ResourceNotFoundException("User with ID:"+bookingReadModel.getUserId()+" not found"));
