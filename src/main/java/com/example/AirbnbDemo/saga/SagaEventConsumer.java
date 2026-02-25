@@ -22,15 +22,15 @@ public class SagaEventConsumer {
     public void consumeEvents(){
         try{
             String event = redisTemplate.opsForList().leftPop(SAGA_QUEUE, Duration.ofSeconds(1));
-            if(event!=null && !event.isEmpty()){
-                SagaEvent sagaEvent = objectMapper.readValue(event, SagaEvent.class);
-                log.info("Processing SagaEvent {}", sagaEvent.toString());
-                sagaEventProcessor.processEvent(sagaEvent);
-                log.info("SagaEvent Processed Successfully for saga Id:{}", sagaEvent.toString());
-            }
+            if(event == null || event.isEmpty())return;
+            SagaEvent sagaEvent = objectMapper.readValue(event, SagaEvent.class);
+            log.info("Processing SagaEvent {}", sagaEvent.toString());
+            sagaEventProcessor.processEvent(sagaEvent);
+            log.info("SagaEvent Processed Successfully for saga Id:{}", sagaEvent.toString());
         }
         catch (Exception e){
             log.error("Error Processing saga events: {}", e.getMessage());
+
             //throw new RuntimeException("Failed to process Saga Event",e);
             //Throwing from a @Scheduled method causes Spring to suppress future scheduled runs in some configurations.
             // You should log-and-continue instead:
