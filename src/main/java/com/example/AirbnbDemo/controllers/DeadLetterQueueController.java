@@ -21,7 +21,7 @@ public class DeadLetterQueueController {
     // See how many failed events are sitting in the DLQ
     @GetMapping("/size")
     public ResponseEntity<Long> getDlqSize() {
-        return ResponseEntity.status(HttpStatus.CREATED).body(deadLetterQueueService.getDlqSize());
+        return ResponseEntity.ok(deadLetterQueueService.getDlqSize());
     }
 
     // Peek at all DLQ events without removing them

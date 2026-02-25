@@ -39,6 +39,10 @@ public class BookingService implements IBookingService {
     @Override
     @Transactional
     public Booking createBooking(CreateBookingDTO dto) {
+        LocalDate checkIn = dto.getCheckInDate();
+        LocalDate checkOut = dto.getCheckOutDate();
+        LocalDate realCheckOut = checkOut.minusDays(1);
+        boolean lockAcquired = false;
         try {
             log.info("createBooking dto {}", dto);
             User user=userRepository.findById(dto.getUserId())
@@ -47,9 +51,6 @@ public class BookingService implements IBookingService {
             Airbnb airbnb=airbnbRepository.findById(dto.getAirbnbId())
                     .orElseThrow(()->new ResourceNotFoundException("Airbnb with Id :"+ dto.getAirbnbId() +" not found"));
             log.info("Got Airbnb Booking for Creating booking {}", airbnb);
-            LocalDate checkIn = dto.getCheckInDate();
-            LocalDate checkOut = dto.getCheckOutDate();
-            LocalDate realCheckOut = checkOut.minusDays(1);
             if(checkIn.isAfter(checkOut)) {
                 throw new RuntimeException("Check-in date must be before Check-out date");
             }
@@ -64,6 +65,7 @@ public class BookingService implements IBookingService {
                     concurrencyControlStrategy.lockAndCheckAvailability(
                             dto.getAirbnbId(), checkIn, realCheckOut, dto.getUserId()
                     );
+            lockAcquired=true;
             long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
             double totalPrice = nights * airbnb.getPricePerNight();
             String idempotencyKey = UUID.randomUUID().toString();
@@ -76,9 +78,7 @@ public class BookingService implements IBookingService {
             booking = bookingRepository.save(booking);
             return booking;
         } catch (Exception e) {
-            LocalDate checkOut = dto.getCheckOutDate();
-            LocalDate realCheckOut = checkOut.minusDays(1);
-            concurrencyControlStrategy.releaseLock(dto.getAirbnbId(), dto.getCheckInDate(), realCheckOut ,dto.getUserId());
+            if(lockAcquired) concurrencyControlStrategy.releaseLock(dto.getAirbnbId(), dto.getCheckInDate(), realCheckOut ,dto.getUserId());
             throw e;
         }
     }

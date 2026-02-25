@@ -70,7 +70,8 @@ public class DeadLetterQueueService implements IDeadLetterQueueService {
     @Override
     public String replayAll() {
         int success=0,failed=0;
-        long snapshot = getDlqSize() == null ? 0 : getDlqSize();
+        Long size= getDlqSize();
+        long snapshot = size == null ? 0 : size;
         for (long i = 0; i < snapshot; i++) {
             try{
                 String topEvent = redisTemplate.opsForList().rightPop(DeadLetterEventPublisher.DLQ_QUEUE);
