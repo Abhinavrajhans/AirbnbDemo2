@@ -6,6 +6,7 @@ import com.example.AirbnbDemo.dtos.CreateAvailabilityDTO;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.Availability;
 import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
+import tools.jackson.databind.JsonNode;
 
 public class AvailabilityMapper {
 
@@ -36,5 +37,17 @@ public class AvailabilityMapper {
                 .bookingId(availability.getBooking() != null ? availability.getBooking().getId() : null)
                 .isAvailable(availability.getIsAvailable())
                 .build();
+    }
+
+    public static AvailabilityReadModel toReadModelFromCDC(Long airbnbId,String date,JsonNode payload){
+
+        return  AvailabilityReadModel.builder()
+                .id(payload.path("id").longValue())
+                .airbnbId(airbnbId)
+                .date(date)
+                .bookingId(payload.path("booking_id").isNull() ? null : payload.path("booking_id").longValue())
+                .isAvailable(payload.path("is_available").booleanValue())
+                .build();
+
     }
 }

@@ -7,8 +7,7 @@ import com.example.AirbnbDemo.models.Booking;
 import com.example.AirbnbDemo.models.BookingStatus;
 import com.example.AirbnbDemo.models.User;
 import com.example.AirbnbDemo.models.readModels.BookingReadModel;
-import jakarta.persistence.*;
-import lombok.Builder;
+import tools.jackson.databind.JsonNode;
 
 import java.time.LocalDate;
 
@@ -68,5 +67,22 @@ public class BookingMapper {
                 .build();
         booking.setId(bookingReadModel.getId());
         return booking;
+    }
+
+    public static BookingReadModel ToReadModelFromCDC(Long id, String idempotencyKey,JsonNode payload){
+
+        // ← Both dates are epoch days integers, same as availability
+        LocalDate checkInDate = LocalDate.ofEpochDay(payload.path("check_in_date").intValue());
+        LocalDate checkOutDate = LocalDate.ofEpochDay(payload.path("check_out_date").intValue());
+        return BookingReadModel.builder()
+                .id(id)
+                .userId(payload.path("user_id").longValue())
+                .airbnbId(payload.path("airbnb_id").longValue())
+                .totalPrice(payload.path("total_price").doubleValue())
+                .bookingStatus(payload.path("status").stringValue())
+                .idempotencyKey(idempotencyKey)
+                .checkInDate(checkInDate)
+                .checkOutDate(checkOutDate)
+                .build();
     }
 }

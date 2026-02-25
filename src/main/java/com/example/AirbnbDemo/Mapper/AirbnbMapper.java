@@ -4,9 +4,9 @@ import com.example.AirbnbDemo.dtos.AirbnbDTO;
 import com.example.AirbnbDemo.dtos.CreateAirbnbDTO;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
-import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
+import tools.jackson.databind.JsonNode;
 
-import java.util.List;
+
 
 public class AirbnbMapper {
 
@@ -37,6 +37,16 @@ public class AirbnbMapper {
                 .location(airbnb.getLocation())
                 .pricePerNight(airbnb.getPricePerNight())
 //                .availability(availabilityReadModel)
+                .build();
+    }
+
+    public static AirbnbReadModel toReadModelFromCDC(JsonNode payload){
+        return AirbnbReadModel.builder()
+                .id(payload.path("id").longValue())
+                .name(payload.path("name").stringValue())               // ← stringValue()
+                .description(payload.path("description").stringValue()) // ← stringValue()
+                .location(payload.path("location").stringValue())       // ← stringValue()
+                .pricePerNight(payload.path("price_per_night").longValue())
                 .build();
     }
 }

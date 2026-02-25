@@ -1,5 +1,6 @@
 package com.example.AirbnbDemo.cdc;
 
+import com.example.AirbnbDemo.Mapper.AvailabilityMapper;
 import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,9 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+
+import java.time.LocalDate;
+
 
 @Component
 @RequiredArgsConstructor
@@ -19,26 +23,27 @@ public class AvailabilityCDCConsumer {
 
     @KafkaListener(topics = "airbnb.airbnbspringdemo.availabilities", groupId = "airbnb-cdc-group")
     public void consume(String message) {
+        log.info("CDC received availability message: {}", message);
         try {
             JsonNode root = objectMapper.readTree(message);
-            String op = root.path("__op").toString();
-            Long airbnbId = root.path("airbnb_id").asLong();
-            String date = root.path("date").toString();
+            JsonNode payload = root.path("payload");
 
-            AvailabilityReadModel model = AvailabilityReadModel.builder()
-                    .id(Long.parseLong(root.path("id").toString()))
-                    .airbnbId(airbnbId)
-                    .date(date)
-                    .bookingId(root.path("booking_id").isNull() ? null : Long.parseLong(root.path("booking_id").toString()))
-                    .isAvailable(Boolean.parseBoolean(root.path("is_available").toString()))
-                    .build();
-
+            boolean deleted = "true".equals(payload.path("__deleted").stringValue());
+            if (deleted) {
+                log.info("CDC availability delete event received");
+                return;
+            }
+            Long airbnbId = payload.path("airbnb_id").longValue();
+            // ← Debezium stores date as epoch days (integer), convert to LocalDate string
+            int epochDays = payload.path("date").intValue();
+            String date = LocalDate.ofEpochDay(epochDays).toString(); // → "2026-02-25"
+            AvailabilityReadModel model = AvailabilityMapper.toReadModelFromCDC(airbnbId,date,payload);
             redisTemplate.opsForHash().put(
                     "airbnb:availability:" + airbnbId,
                     date,
                     objectMapper.writeValueAsString(model)
             );
-            log.info("CDC synced availability for airbnb {} date {} (op={})", airbnbId, date, op);
+            log.info("CDC synced availability for airbnb {} date {}", airbnbId, date);
 
         } catch (Exception e) {
             log.error("Failed to process availability CDC event: {}", e.getMessage(), e);

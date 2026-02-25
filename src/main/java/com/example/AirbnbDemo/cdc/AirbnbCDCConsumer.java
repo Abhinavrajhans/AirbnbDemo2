@@ -1,5 +1,6 @@
 package com.example.AirbnbDemo.cdc;
 
+import com.example.AirbnbDemo.Mapper.AirbnbMapper;
 import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,13 +34,7 @@ public class AirbnbCDCConsumer {
                 return;
             }
 
-            AirbnbReadModel model = AirbnbReadModel.builder()
-                    .id(payload.path("id").longValue())
-                    .name(payload.path("name").stringValue())               // ← stringValue()
-                    .description(payload.path("description").stringValue()) // ← stringValue()
-                    .location(payload.path("location").stringValue())       // ← stringValue()
-                    .pricePerNight(payload.path("price_per_night").longValue())
-                    .build();
+            AirbnbReadModel model = AirbnbMapper.toReadModelFromCDC(payload);
 
             redisTemplate.opsForValue().set(
                     "airbnb:" + model.getId(),
