@@ -26,7 +26,7 @@ public class SagaEventConsumer {
             SagaEvent sagaEvent = objectMapper.readValue(event, SagaEvent.class);
             log.info("Processing SagaEvent {}", sagaEvent.toString());
             retryableSagaProcessor.processWithRetry(sagaEvent);
-            log.info("SagaEvent Processed Successfully for saga Id:{}", sagaEvent.toString());
+            log.info("SagaEvent Processing Done for saga Id:{}", sagaEvent.toString());
         }
         catch (Exception e){
             log.error("Error Processing saga events: {}", e.getMessage());
