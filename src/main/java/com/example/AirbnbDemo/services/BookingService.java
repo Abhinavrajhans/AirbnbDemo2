@@ -7,7 +7,6 @@ import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.*;
 import com.example.AirbnbDemo.models.readModels.BookingReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
-import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.BookingRepository;
 import com.example.AirbnbDemo.repository.writes.UserRepository;
@@ -40,44 +39,44 @@ public class BookingService implements IBookingService {
     @Override
     @Transactional
     public Booking createBooking(CreateBookingDTO dto) {
-
-        log.info("createBooking dto {}", dto);
-        User user=userRepository.findById(dto.getUserId())
-                .orElseThrow(()->new ResourceNotFoundException("User with Id :"+ dto.getUserId() +" not found"));
-        log.info("Got User for Creating booking {}", user);
-        Airbnb airbnb=airbnbRepository.findById(dto.getAirbnbId())
-                .orElseThrow(()->new ResourceNotFoundException("Airbnb with Id :"+ dto.getAirbnbId() +" not found"));
-        log.info("Got Airbnb Booking for Creating booking {}", airbnb);
-        LocalDate checkIn = dto.getCheckInDate();
-        LocalDate checkOut = dto.getCheckOutDate();
-        LocalDate realCheckOut = checkOut.minusDays(1);
-        if(checkIn.isAfter(checkOut)) {
-            throw new RuntimeException("Check-in date must be before Check-out date");
-        }
-        if(checkOut.isBefore(LocalDate.now())) {
-            throw new RuntimeException("Check-out date must be today or in the future");
-        }
-        if(checkIn.equals(checkOut)) {
-            throw new RuntimeException("Check-in and check-out dates cannot be the same");
-        }
-
-        List<Availability> availabilities =
-                concurrencyControlStrategy.lockAndCheckAvailability(
-                        dto.getAirbnbId(), checkIn, realCheckOut, dto.getUserId()
-                );
-        long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
-        double totalPrice = nights * airbnb.getPricePerNight();
-        String idempotencyKey = UUID.randomUUID().toString();
-        log.info("Creating booking for Airbnb {} | dates: {} → {} | total: {} | key: {}",
-                airbnb.getId(), checkIn, checkOut, totalPrice, idempotencyKey);
-        Booking booking = BookingMapper.toEntity(dto, user, airbnb, idempotencyKey, totalPrice);
-
-//        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
         try {
+            log.info("createBooking dto {}", dto);
+            User user=userRepository.findById(dto.getUserId())
+                    .orElseThrow(()->new ResourceNotFoundException("User with Id :"+ dto.getUserId() +" not found"));
+            log.info("Got User for Creating booking {}", user);
+            Airbnb airbnb=airbnbRepository.findById(dto.getAirbnbId())
+                    .orElseThrow(()->new ResourceNotFoundException("Airbnb with Id :"+ dto.getAirbnbId() +" not found"));
+            log.info("Got Airbnb Booking for Creating booking {}", airbnb);
+            LocalDate checkIn = dto.getCheckInDate();
+            LocalDate checkOut = dto.getCheckOutDate();
+            LocalDate realCheckOut = checkOut.minusDays(1);
+            if(checkIn.isAfter(checkOut)) {
+                throw new RuntimeException("Check-in date must be before Check-out date");
+            }
+            if(checkOut.isBefore(LocalDate.now())) {
+                throw new RuntimeException("Check-out date must be today or in the future");
+            }
+            if(checkIn.equals(checkOut)) {
+                throw new RuntimeException("Check-in and check-out dates cannot be the same");
+            }
+
+            List<Availability> availabilities =
+                    concurrencyControlStrategy.lockAndCheckAvailability(
+                            dto.getAirbnbId(), checkIn, realCheckOut, dto.getUserId()
+                    );
+            long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
+            double totalPrice = nights * airbnb.getPricePerNight();
+            String idempotencyKey = UUID.randomUUID().toString();
+            log.info("Creating booking for Airbnb {} | dates: {} → {} | total: {} | key: {}",
+                    airbnb.getId(), checkIn, checkOut, totalPrice, idempotencyKey);
+            Booking booking = BookingMapper.toEntity(dto, user, airbnb, idempotencyKey, totalPrice);
+
+    //        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
+
             booking = bookingRepository.save(booking);
             return booking;
         } catch (Exception e) {
-            concurrencyControlStrategy.releaseLock(airbnb.getId(), checkIn, realCheckOut);
+            concurrencyControlStrategy.releaseLock(dto.getAirbnbId(), dto.getCheckInDate(), dto.getCheckOutDate(),dto.getUserId());
             throw e;
         }
     }
@@ -98,6 +97,7 @@ public class BookingService implements IBookingService {
         Map<String, Object> payload = Map.of(
                 "bookingId",    bookingReadModel.getId().toString(),
                 "airbnbId",     bookingReadModel.getAirbnbId().toString(),
+                "userId",       bookingReadModel.getUserId(),
                 "checkInDate",  bookingReadModel.getCheckInDate().toString(),
                 "checkOutDate", bookingReadModel.getCheckOutDate().toString()
         );
