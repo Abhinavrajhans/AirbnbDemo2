@@ -16,7 +16,7 @@ public class SagaEventConsumer {
     private static final String SAGA_QUEUE = "saga:events";
     private final RedisTemplate<String,String> redisTemplate;
     private final ObjectMapper objectMapper;
-    private final SagaEventProcessor sagaEventProcessor;
+    private final RetryableSagaProcessor retryableSagaProcessor;
 
     @Scheduled(fixedDelay = 500) //poll every 500 mili seconds
     public void consumeEvents(){
@@ -25,7 +25,7 @@ public class SagaEventConsumer {
             if(event == null || event.isEmpty())return;
             SagaEvent sagaEvent = objectMapper.readValue(event, SagaEvent.class);
             log.info("Processing SagaEvent {}", sagaEvent.toString());
-            sagaEventProcessor.processEvent(sagaEvent);
+            retryableSagaProcessor.processWithRetry(sagaEvent);
             log.info("SagaEvent Processed Successfully for saga Id:{}", sagaEvent.toString());
         }
         catch (Exception e){
