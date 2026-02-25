@@ -69,10 +69,11 @@ public class DeadLetterQueueService implements IDeadLetterQueueService {
     //Replay All events in dlq
     @Override
     public String replayAll() {
-        int success = 0, failed = 0;
-        String topEvent;
-        while ((topEvent = redisTemplate.opsForList().rightPop(DeadLetterEventPublisher.DLQ_QUEUE)) != null) {
-            try {
+        int success=0,failed=0;
+        Long size=getDlqSize();
+        while(size--!=0){
+            try{
+                String topEvent = redisTemplate.opsForList().rightPop(DeadLetterEventPublisher.DLQ_QUEUE);
                 DeadLetterEvent deadLetterEvent = objectMapper.readValue(topEvent, DeadLetterEvent.class);
                 log.info("Replaying DLQ event: {}", deadLetterEvent.getOriginalEvent());
                 retryableSagaProcessor.processWithRetry(deadLetterEvent.getOriginalEvent());
