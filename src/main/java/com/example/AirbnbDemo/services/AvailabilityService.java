@@ -7,7 +7,6 @@ import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.Availability;
 import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
-import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import lombok.RequiredArgsConstructor;

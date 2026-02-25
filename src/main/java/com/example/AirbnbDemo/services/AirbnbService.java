@@ -6,7 +6,6 @@ import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
-import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
