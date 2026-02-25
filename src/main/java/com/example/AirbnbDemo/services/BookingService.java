@@ -103,39 +103,61 @@ public class BookingService implements IBookingService {
     @Override
     @Transactional
     public String updateBooking(UpdateBookingRequest request) {
-        String lockValue=concurrencyControlStrategy.lockAndUpdateBooking(request.getId());
+        String lockValue = concurrencyControlStrategy.lockAndUpdateBooking(request.getId());
         if (lockValue == null) {
-            throw new IllegalStateException("Booking update already in progress. Try again.");
+            throw new IllegalStateException(
+                    "Booking update already in progress. Try again.");
         }
+
         try {
             log.info("Updating Booking for idempotency key {}", request.getIdempotencyKey());
-            BookingReadModel bookingReadModel = idempotencyService.findBookingByIdempotencyKey(request.getIdempotencyKey())
-                    .orElseThrow(() -> new ResourceNotFoundException("Booking with Idempotency Key:" + request.getIdempotencyKey() + " not found"));
+
+            BookingReadModel bookingReadModel = idempotencyService
+                    .findBookingByIdempotencyKey(request.getIdempotencyKey())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Booking with Idempotency Key: "
+                                    + request.getIdempotencyKey() + " not found"));
+
             BookingStatus status = BookingStatus.valueOf(bookingReadModel.getBookingStatus());
             if (status != BookingStatus.PENDING) {
-                throw new RuntimeException("Booking status is not PENDING It is Already Processed.");
+                throw new IllegalStateException(
+                        "Booking is already processed with status: " + status);
             }
 
             Map<String, Object> payload = Map.of(
-                    "bookingId", bookingReadModel.getId().toString(),
-                    "airbnbId", bookingReadModel.getAirbnbId().toString(),
-                    "userId", bookingReadModel.getUserId(),
-                    "checkInDate", bookingReadModel.getCheckInDate().toString(),
+                    "bookingId",    bookingReadModel.getId().toString(),
+                    "airbnbId",     bookingReadModel.getAirbnbId().toString(),
+                    "userId",       bookingReadModel.getUserId(),
+                    "checkInDate",  bookingReadModel.getCheckInDate().toString(),
                     "checkOutDate", bookingReadModel.getCheckOutDate().toString()
             );
+
             if (request.getBookingStatus() == BookingStatus.CONFIRMED) {
-                sagaEventPublisher.publishEvent("BOOKING_CONFIRM_REQUESTED", "CONFIRM_BOOKING", payload);
+                sagaEventPublisher.publishEvent(
+                        "BOOKING_CONFIRM_REQUESTED", "CONFIRM_BOOKING", payload);
             } else if (request.getBookingStatus() == BookingStatus.CANCELLED) {
-                sagaEventPublisher.publishEvent("BOOKING_CANCEL_REQUESTED", "CANCEL_BOOKING", payload);
+                sagaEventPublisher.publishEvent(
+                        "BOOKING_CANCEL_REQUESTED", "CANCEL_BOOKING", payload);
             }
-            return "Booking Is In Progess......";
-        }
-        catch (Exception e) {
-            log.error("Some problem occurred while updating booking: {}", e.getMessage());
-            throw new RuntimeException("Some problem occurred while updating booking", e); // ← no {}
-        }
-        finally {
-            concurrencyControlStrategy.releaseUpdateBookingLock(request.getId(), lockValue);
+
+            return "Booking is in progress...";
+
+        } catch (ResourceNotFoundException | IllegalStateException e) {
+            // ✅ Re-throw directly — GlobalExceptionHandler has specific handlers for these
+            // ResourceNotFoundException → 404
+            // IllegalStateException     → 409
+            throw e;
+
+        } catch (Exception e) {
+            // ✅ Only truly unexpected errors get wrapped
+            log.error("Unexpected error while updating booking {}: {}",
+                    request.getId(), e.getMessage(), e);
+            throw new RuntimeException(
+                    "Unexpected error while updating booking: " + request.getId(), e);
+
+        } finally {
+            concurrencyControlStrategy.releaseUpdateBookingLock(
+                    request.getId(), lockValue);
         }
     }
 
