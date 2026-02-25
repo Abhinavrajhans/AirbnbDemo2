@@ -6,9 +6,9 @@ import com.example.AirbnbDemo.dtos.UpdateBookingRequest;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.*;
 import com.example.AirbnbDemo.models.readModels.BookingReadModel;
+import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
-import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import com.example.AirbnbDemo.repository.writes.BookingRepository;
 import com.example.AirbnbDemo.repository.writes.UserRepository;
 import com.example.AirbnbDemo.saga.SagaEventPublisher;
@@ -33,7 +33,7 @@ public class BookingService implements IBookingService {
     private final UserRepository userRepository;
     private final AirbnbRepository airbnbRepository;
     private final IIdempotencyService  idempotencyService;
-    private final AvailabilityRepository availabilityRepository;
+    private final RedisReadRepository redisReadRepository;
     private final ConcurrencyControlStrategy concurrencyControlStrategy;
     private final SagaEventPublisher sagaEventPublisher;
     private final RedisWriteRepository  redisWriteRepository;
@@ -108,14 +108,14 @@ public class BookingService implements IBookingService {
     }
 
     @Override
-    public Booking getBookingById(Long id) {
-        return bookingRepository.findById(id)
+    public BookingReadModel getBookingById(Long id) {
+        return  redisReadRepository.getBookingById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Booking with Id :"+ id +" not found"));
     }
 
     @Override
-    public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
+    public List<BookingReadModel> getAllBookings() {
+        return redisReadRepository.getAllBookings();
     }
 
     @Override

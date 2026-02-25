@@ -9,6 +9,7 @@ import com.example.AirbnbDemo.services.concurrency.ConcurrencyControlStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,7 +25,7 @@ public class AvailabilityEventHandler {
     private final RedisWriteRepository redisWriteRepository;
     private final ConcurrencyControlStrategy concurrencyControlStrategy;
 
-
+    @Transactional
     public void handleBookingConfirmed(SagaEvent sagaEvent) {
         log.info("Processing SagaEvent In AvailabilityEventHandler {}", sagaEvent.toString());
         try{
@@ -57,6 +58,7 @@ public class AvailabilityEventHandler {
         }
     }
 
+    @Transactional
     public void handleBookingCancelled(SagaEvent sagaEvent) {
         try{
             Map<String,Object> payload = sagaEvent.getPayload();

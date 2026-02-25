@@ -67,6 +67,8 @@ public class RedisReadRepository {
         return getAllByPrefix(AIRBNB_KEY_PREFIX, AirbnbReadModel.class);
     }
 
+    public List<BookingReadModel> getAllBookings() { return  getAllByPrefix(BOOKING_KEY_PREFIX, BookingReadModel.class); }
+
     public BookingReadModel findBookingByIdempotencyKey(String idempotencyKey) {
         log.info("Finding Booking for idempotency key {}", idempotencyKey);
         String key = IDEMPOTENCY_KEY_PREFIX + idempotencyKey;

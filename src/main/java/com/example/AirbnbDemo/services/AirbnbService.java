@@ -23,6 +23,7 @@ public class AirbnbService implements IAirbnbService{
     private final RedisWriteRepository redisWriteRepository;
 
     @Override
+    @Transactional
     public Airbnb createAirbnb(CreateAirbnbDTO dto) {
         Airbnb airbnb= AirbnbMapper.toEntity(dto);
         airbnb=airbnbRepository.save(airbnb);

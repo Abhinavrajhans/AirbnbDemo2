@@ -5,6 +5,7 @@ import com.example.AirbnbDemo.dtos.BookingDTO;
 import com.example.AirbnbDemo.dtos.CreateBookingDTO;
 import com.example.AirbnbDemo.dtos.UpdateBookingRequest;
 import com.example.AirbnbDemo.models.Booking;
+import com.example.AirbnbDemo.models.readModels.BookingReadModel;
 import com.example.AirbnbDemo.services.IBookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,16 +38,14 @@ public class BookingController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookingDTO> getBookingById(@PathVariable Long id) {
-        Booking booking = bookingService.getBookingById(id);
-        return ResponseEntity.ok(BookingMapper.toDTO(booking));
+    public ResponseEntity<BookingReadModel> getBookingById(@PathVariable Long id) {
+        return ResponseEntity.ok(bookingService.getBookingById(id));
     }
 
 
     @GetMapping
-    public ResponseEntity<List<BookingDTO>> getAllBookings() {
-        List<BookingDTO> bookingDTOList=bookingService.getAllBookings().stream().map(BookingMapper::toDTO).toList();
-        return ResponseEntity.ok(bookingDTOList);
+    public ResponseEntity<List<BookingReadModel>> getAllBookings() {
+        return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
     @GetMapping("/user")
