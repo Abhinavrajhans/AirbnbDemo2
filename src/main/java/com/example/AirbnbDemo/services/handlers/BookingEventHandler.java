@@ -3,18 +3,17 @@ package com.example.AirbnbDemo.services.handlers;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.Booking;
 import com.example.AirbnbDemo.models.BookingStatus;
-import com.example.AirbnbDemo.repository.reads.RedisWriteRepository;
 import com.example.AirbnbDemo.repository.writes.BookingRepository;
 import com.example.AirbnbDemo.saga.SagaEvent;
 import com.example.AirbnbDemo.saga.SagaEventPublisher;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Map;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class BookingEventHandler {
 
@@ -28,6 +27,7 @@ public class BookingEventHandler {
             Map<String,Object> payload = sagaEvent.getPayload();
             Long bookingId=Long.parseLong(payload.get("bookingId").toString());
             Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
+            Long userId=Long.parseLong(payload.get("userId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
             Booking booking=bookingRepository.findById(bookingId)
@@ -48,6 +48,7 @@ public class BookingEventHandler {
             Map<String,Object> payload = sagaEvent.getPayload();
             Long bookingId=Long.parseLong(payload.get("bookingId").toString());
             Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
+            Long userId=Long.parseLong(payload.get("userId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
             Booking booking=bookingRepository.findById(bookingId)

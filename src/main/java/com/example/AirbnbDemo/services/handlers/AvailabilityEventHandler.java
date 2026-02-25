@@ -29,6 +29,7 @@ public class AvailabilityEventHandler {
             Map<String,Object> payload = sagaEvent.getPayload();
             Long bookingId=Long.parseLong(payload.get("bookingId").toString());
             Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
+            Long userId=Long.parseLong(payload.get("userId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
             LocalDate realCheckOut = checkOutDate.minusDays(1);
@@ -41,7 +42,7 @@ public class AvailabilityEventHandler {
             availabilityRepository.updateBookingIdByAirbnbIdAndDateBetween(bookingId,airbnbId,checkInDate,realCheckOut);
             log.info("done updating the availability in db {}", sagaEvent.toString());
             //  DB now permanently records the booking — release the temporary lock
-            concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut);
+            concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut,userId);
             log.info("Lock released after confirming booking {}", bookingId);
         }
          catch (SagaAlreadyCompensatedException e) {
@@ -60,12 +61,13 @@ public class AvailabilityEventHandler {
             Map<String,Object> payload = sagaEvent.getPayload();
             Long bookingId=Long.parseLong(payload.get("bookingId").toString());
             Long airbnbId=Long.parseLong(payload.get("airbnbId").toString());
+            Long userId=Long.parseLong(payload.get("userId").toString());
             LocalDate checkInDate =  LocalDate.parse(payload.get("checkInDate").toString());
             LocalDate checkOutDate =  LocalDate.parse(payload.get("checkOutDate").toString());
             LocalDate realCheckOut = checkOutDate.minusDays(1);
             availabilityRepository.clearBookingByAirbnbIdAndDateBetween(airbnbId,checkInDate,realCheckOut);
             //  Booking cancelled — release lock so others can book these dates
-            concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut);
+            concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut,userId);
             log.info("Lock released after cancelling booking for airbnb {}", airbnbId);
         }
          catch (SagaAlreadyCompensatedException e) {
