@@ -23,6 +23,7 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
     private final RedisTemplate<String,String> redisTemplate;
     private final AvailabilityRepository availabilityRepository;
 
+
     private static final String RELEASE_SCRIPT =
             "if redis.call('get', KEYS[1]) == ARGV[1] then " +
                     "    return redis.call('del', KEYS[1]) " +    // owner matches → delete
@@ -30,13 +31,12 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
                     "    return 0 " +                              // not owner → do nothing
                     "end";
 
+    private static final DefaultRedisScript<Long> RELEASE_REDIS_SCRIPT =
+            new DefaultRedisScript<>(RELEASE_SCRIPT, Long.class);
+
     public void releaseLock(Long airbnbId, LocalDate checkIn, LocalDate checkOut, Long userId) {
         String key = generateLockKey(airbnbId, checkIn, checkOut);
-        redisTemplate.execute(
-                new DefaultRedisScript<>(RELEASE_SCRIPT, Long.class),
-                List.of(key),        // KEYS[1]
-                userId.toString()    // ARGV[1]
-        );
+        redisTemplate.execute(RELEASE_REDIS_SCRIPT, List.of(key), userId.toString());
     }
 
     @Override
@@ -48,10 +48,7 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
         }
         try{
             Long bookedSlots=availabilityRepository.countByAirbnbIdAndDateBetweenAndBookingIsNotNull(airbnbId,checkInDate,checkOutDate);
-            if(bookedSlots>0){
-                releaseLock(airbnbId,checkInDate,checkOutDate,userId);
-                throw new RuntimeException("Airbnb is not available for the given dates. Please try again with different dates.");
-            }
+            if(bookedSlots>0) throw new RuntimeException("Airbnb is not available for the given dates. Please try again with different dates.");
             return availabilityRepository.findByAirbnbIdAndDateBetween(airbnbId,checkInDate,checkOutDate);
         }
         catch (Exception e){

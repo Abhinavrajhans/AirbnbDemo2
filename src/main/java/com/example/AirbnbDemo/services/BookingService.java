@@ -76,7 +76,9 @@ public class BookingService implements IBookingService {
             booking = bookingRepository.save(booking);
             return booking;
         } catch (Exception e) {
-            concurrencyControlStrategy.releaseLock(dto.getAirbnbId(), dto.getCheckInDate(), dto.getCheckOutDate(),dto.getUserId());
+            LocalDate checkOut = dto.getCheckOutDate();
+            LocalDate realCheckOut = checkOut.minusDays(1);
+            concurrencyControlStrategy.releaseLock(dto.getAirbnbId(), dto.getCheckInDate(), realCheckOut ,dto.getUserId());
             throw e;
         }
     }
