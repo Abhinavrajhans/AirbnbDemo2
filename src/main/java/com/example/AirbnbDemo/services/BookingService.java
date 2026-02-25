@@ -36,49 +36,66 @@ public class BookingService implements IBookingService {
     private final ConcurrencyControlStrategy concurrencyControlStrategy;
     private final SagaEventPublisher sagaEventPublisher;
 
+    private void validateDates(LocalDate checkIn, LocalDate checkOut) {
+        if (checkIn.isAfter(checkOut)) {
+            throw new RuntimeException("Check-in date must be before check-out date");
+        }
+        if (checkOut.isBefore(LocalDate.now())) {
+            throw new RuntimeException("Check-out date must be today or in the future");
+        }
+        if (checkIn.equals(checkOut)) {
+            throw new RuntimeException("Check-in and check-out dates cannot be the same");
+        }
+    }
+
+
     @Override
     @Transactional
     public Booking createBooking(CreateBookingDTO dto) {
         LocalDate checkIn = dto.getCheckInDate();
         LocalDate checkOut = dto.getCheckOutDate();
         LocalDate realCheckOut = checkOut.minusDays(1);
-        boolean lockAcquired = false;
-        try {
-            log.info("createBooking dto {}", dto);
-            User user=userRepository.findById(dto.getUserId())
-                    .orElseThrow(()->new ResourceNotFoundException("User with Id :"+ dto.getUserId() +" not found"));
-            log.info("Got User for Creating booking {}", user);
-            Airbnb airbnb=airbnbRepository.findById(dto.getAirbnbId())
-                    .orElseThrow(()->new ResourceNotFoundException("Airbnb with Id :"+ dto.getAirbnbId() +" not found"));
-            log.info("Got Airbnb Booking for Creating booking {}", airbnb);
-            if(checkIn.isAfter(checkOut)) {
-                throw new RuntimeException("Check-in date must be before Check-out date");
-            }
-            if(checkOut.isBefore(LocalDate.now())) {
-                throw new RuntimeException("Check-out date must be today or in the future");
-            }
-            if(checkIn.equals(checkOut)) {
-                throw new RuntimeException("Check-in and check-out dates cannot be the same");
-            }
 
-            List<Availability> availabilities =
-                    concurrencyControlStrategy.lockAndCheckAvailability(
-                            dto.getAirbnbId(), checkIn, realCheckOut, dto.getUserId()
-                    );
-            lockAcquired=true;
+        // Validate dates before acquiring the lock — fail fast, no lock needed
+        validateDates(checkIn, checkOut);
+
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User with Id: " + dto.getUserId() + " not found"));
+
+        Airbnb airbnb = airbnbRepository.findById(dto.getAirbnbId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Airbnb with Id: " + dto.getAirbnbId() + " not found"));
+
+        // ✅ Lock acquired here — BookingService now fully owns the lock lifecycle
+        List<Availability> availabilities = concurrencyControlStrategy
+                .lockAndCheckAvailability(
+                        dto.getAirbnbId(), checkIn, realCheckOut, dto.getUserId());
+
+        // ✅ Everything after this point is inside the lock
+        // If anything fails, we release in finally
+        try {
             long nights = ChronoUnit.DAYS.between(checkIn, checkOut);
             double totalPrice = nights * airbnb.getPricePerNight();
             String idempotencyKey = UUID.randomUUID().toString();
+
             log.info("Creating booking for Airbnb {} | dates: {} → {} | total: {} | key: {}",
                     airbnb.getId(), checkIn, checkOut, totalPrice, idempotencyKey);
-            Booking booking = BookingMapper.toEntity(dto, user, airbnb, idempotencyKey, totalPrice);
 
-    //        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
+            Booking booking = BookingMapper.toEntity(
+                    dto, user, airbnb, idempotencyKey, totalPrice);
 
-            booking = bookingRepository.save(booking);
-            return booking;
+            return bookingRepository.save(booking);
+
+            // ✅ Lock is NOT released here on success —
+            // AvailabilityEventHandler releases it after DB is updated (saga confirmed)
+
         } catch (Exception e) {
-            if(lockAcquired) concurrencyControlStrategy.releaseBookingLock(dto.getAirbnbId(), dto.getCheckInDate(), realCheckOut ,dto.getUserId());
+            // ✅ Only reaches here if lock WAS acquired — safe to release
+            log.error("Booking creation failed after lock acquired, releasing lock: {}",
+                    e.getMessage());
+            concurrencyControlStrategy.releaseBookingLock(
+                    dto.getAirbnbId(), checkIn, realCheckOut, dto.getUserId());
             throw e;
         }
     }

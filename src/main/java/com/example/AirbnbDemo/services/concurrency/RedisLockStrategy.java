@@ -59,15 +59,9 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
         if (!Boolean.TRUE.equals(locked)) {
             throw new IllegalStateException("Failed to acquire booking for the given dates. Please try again.");
         }
-        try{
-            Long bookedSlots=availabilityRepository.countByAirbnbIdAndDateBetweenAndBookingIsNotNull(airbnbId,checkInDate,checkOutDate);
-            if(bookedSlots>0) throw new RuntimeException("Airbnb is not available for the given dates. Please try again with different dates.");
-            return availabilityRepository.findByAirbnbIdAndDateBetween(airbnbId,checkInDate,checkOutDate);
-        }
-        catch (Exception e){
-            releaseBookingLock(airbnbId,checkInDate,checkOutDate,userId);
-            throw e;
-        }
+        Long bookedSlots=availabilityRepository.countByAirbnbIdAndDateBetweenAndBookingIsNotNull(airbnbId,checkInDate,checkOutDate);
+        if(bookedSlots>0) throw new RuntimeException("Airbnb is not available for the given dates. Please try again with different dates.");
+        return availabilityRepository.findByAirbnbIdAndDateBetween(airbnbId,checkInDate,checkOutDate);
     }
 
     public String lockAndUpdateBooking(Long bookingId){
