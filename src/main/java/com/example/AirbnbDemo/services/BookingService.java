@@ -78,7 +78,7 @@ public class BookingService implements IBookingService {
             booking = bookingRepository.save(booking);
             return booking;
         } catch (Exception e) {
-            if(lockAcquired) concurrencyControlStrategy.releaseLock(dto.getAirbnbId(), dto.getCheckInDate(), realCheckOut ,dto.getUserId());
+            if(lockAcquired) concurrencyControlStrategy.releaseBookingLock(dto.getAirbnbId(), dto.getCheckInDate(), realCheckOut ,dto.getUserId());
             throw e;
         }
     }
@@ -86,30 +86,40 @@ public class BookingService implements IBookingService {
     @Override
     @Transactional
     public String updateBooking(UpdateBookingRequest request) {
-        log.info("Updating Booking for idempotency key {}",request.getIdempotencyKey());
-        BookingReadModel bookingReadModel = idempotencyService.findBookingByIdempotencyKey(request.getIdempotencyKey())
-                    .orElseThrow(()-> new ResourceNotFoundException("Booking with Idempotency Key:"+request.getIdempotencyKey()+" not found"));
-        log.info("booking found for idempotency key {}",request.getIdempotencyKey());
-        log.info("booking status {}:",bookingReadModel.getBookingStatus());
-        BookingStatus status= BookingStatus.valueOf(bookingReadModel.getBookingStatus());
-        if(status != BookingStatus.PENDING) {
-            throw new RuntimeException("Booking status is not PENDING It is Already Processed.");
+        String lockValue=concurrencyControlStrategy.lockAndUpdateBooking(request.getId());
+        if (lockValue == null) {
+            throw new IllegalStateException("Booking update already in progress. Try again.");
         }
+        try {
+            log.info("Updating Booking for idempotency key {}", request.getIdempotencyKey());
+            BookingReadModel bookingReadModel = idempotencyService.findBookingByIdempotencyKey(request.getIdempotencyKey())
+                    .orElseThrow(() -> new ResourceNotFoundException("Booking with Idempotency Key:" + request.getIdempotencyKey() + " not found"));
+            BookingStatus status = BookingStatus.valueOf(bookingReadModel.getBookingStatus());
+            if (status != BookingStatus.PENDING) {
+                throw new RuntimeException("Booking status is not PENDING It is Already Processed.");
+            }
 
-        Map<String, Object> payload = Map.of(
-                "bookingId",    bookingReadModel.getId().toString(),
-                "airbnbId",     bookingReadModel.getAirbnbId().toString(),
-                "userId",       bookingReadModel.getUserId(),
-                "checkInDate",  bookingReadModel.getCheckInDate().toString(),
-                "checkOutDate", bookingReadModel.getCheckOutDate().toString()
-        );
-        if(request.getBookingStatus()==BookingStatus.CONFIRMED){
-            sagaEventPublisher.publishEvent("BOOKING_CONFIRM_REQUESTED","CONFIRM_BOOKING",payload);
+            Map<String, Object> payload = Map.of(
+                    "bookingId", bookingReadModel.getId().toString(),
+                    "airbnbId", bookingReadModel.getAirbnbId().toString(),
+                    "userId", bookingReadModel.getUserId(),
+                    "checkInDate", bookingReadModel.getCheckInDate().toString(),
+                    "checkOutDate", bookingReadModel.getCheckOutDate().toString()
+            );
+            if (request.getBookingStatus() == BookingStatus.CONFIRMED) {
+                sagaEventPublisher.publishEvent("BOOKING_CONFIRM_REQUESTED", "CONFIRM_BOOKING", payload);
+            } else if (request.getBookingStatus() == BookingStatus.CANCELLED) {
+                sagaEventPublisher.publishEvent("BOOKING_CANCEL_REQUESTED", "CANCEL_BOOKING", payload);
+            }
+            return "Booking Is In Progess......";
         }
-        else if(request.getBookingStatus()==BookingStatus.CANCELLED) {
-            sagaEventPublisher.publishEvent("BOOKING_CANCEL_REQUESTED","CANCEL_BOOKING",payload);
+        catch (Exception e) {
+            log.error("Some problem occurred while updating booking: {}", e.getMessage());
+            throw new RuntimeException("Some problem occurred while updating booking", e); // ← no {}
         }
-        return "Booking Is In Progess......";
+        finally {
+            concurrencyControlStrategy.releaseUpdateBookingLock(request.getId(), lockValue);
+        }
     }
 
     @Override

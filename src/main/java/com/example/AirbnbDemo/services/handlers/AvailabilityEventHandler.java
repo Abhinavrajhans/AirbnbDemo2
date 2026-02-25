@@ -42,7 +42,7 @@ public class AvailabilityEventHandler {
             availabilityRepository.updateBookingIdByAirbnbIdAndDateBetween(bookingId,airbnbId,checkInDate,realCheckOut);
             log.info("done updating the availability in db {}", sagaEvent.toString());
             //  DB now permanently records the booking — release the temporary lock
-            concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut,userId);
+            concurrencyControlStrategy.releaseBookingLock(airbnbId, checkInDate, realCheckOut,userId);
             log.info("Lock released after confirming booking {}", bookingId);
         }
          catch (SagaAlreadyCompensatedException e) {
@@ -67,7 +67,7 @@ public class AvailabilityEventHandler {
             LocalDate realCheckOut = checkOutDate.minusDays(1);
             availabilityRepository.clearBookingByAirbnbIdAndDateBetween(airbnbId,checkInDate,realCheckOut);
             //  Booking cancelled — release lock so others can book these dates
-            concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut,userId);
+            concurrencyControlStrategy.releaseBookingLock(airbnbId, checkInDate, realCheckOut,userId);
             log.info("Lock released after cancelling booking for airbnb {}", airbnbId);
         }
          catch (SagaAlreadyCompensatedException e) {
