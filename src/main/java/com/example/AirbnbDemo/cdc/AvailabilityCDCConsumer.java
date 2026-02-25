@@ -2,6 +2,7 @@ package com.example.AirbnbDemo.cdc;
 
 import com.example.AirbnbDemo.Mapper.AvailabilityMapper;
 import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
+import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -39,7 +40,7 @@ public class AvailabilityCDCConsumer {
             String date = LocalDate.ofEpochDay(epochDays).toString(); // → "2026-02-25"
             AvailabilityReadModel model = AvailabilityMapper.toReadModelFromCDC(airbnbId,date,payload);
             redisTemplate.opsForHash().put(
-                    "airbnb:availability:" + airbnbId,
+                    RedisReadRepository.AIRBNB_AVAILABILITY_PREFIX + airbnbId,
                     date,
                     objectMapper.writeValueAsString(model)
             );

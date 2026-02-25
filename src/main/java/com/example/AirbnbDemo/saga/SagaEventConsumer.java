@@ -6,7 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 @Component
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class SagaEventConsumer {
     @Scheduled(fixedDelay = 500) //poll every 500 mili seconds
     public void consumeEvents(){
         try{
-            String event=redisTemplate.opsForList().leftPop(SAGA_QUEUE,1, TimeUnit.SECONDS);
+            String event = redisTemplate.opsForList().leftPop(SAGA_QUEUE, Duration.ofSeconds(1));
             if(event!=null && !event.isEmpty()){
                 SagaEvent sagaEvent = objectMapper.readValue(event, SagaEvent.class);
                 log.info("Processing SagaEvent {}", sagaEvent.toString());

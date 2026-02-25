@@ -1,5 +1,6 @@
 package com.example.AirbnbDemo.services.handlers;
 
+import com.example.AirbnbDemo.exceptions.SagaAlreadyCompensatedException;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import com.example.AirbnbDemo.saga.SagaEvent;
 import com.example.AirbnbDemo.saga.SagaEventPublisher;
@@ -34,7 +35,7 @@ public class AvailabilityEventHandler {
             Long bookedSlots=availabilityRepository.countByAirbnbIdAndDateBetweenAndBookingIsNotNull(airbnbId,checkInDate,checkOutDate);
             if(bookedSlots>0){
                 sagaEventPublisher.publishEvent("BOOKING_CANCEL_REQUESTED","CANCEL_BOOKING",sagaEvent.getPayload());
-                throw new RuntimeException("Airbnb is not available for the given dates. Please try again with different dates");
+                throw new SagaAlreadyCompensatedException("Airbnb is not available for the given dates. Please try again with different dates , This Booking Will be Cancelled.");
             }
             log.info("updating the availability in db {}", sagaEvent.toString());
             availabilityRepository.updateBookingIdByAirbnbIdAndDateBetween(bookingId,airbnbId,checkInDate,realCheckOut);
@@ -42,6 +43,10 @@ public class AvailabilityEventHandler {
             //  DB now permanently records the booking — release the temporary lock
             concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut);
             log.info("Lock released after confirming booking {}", bookingId);
+        }
+         catch (SagaAlreadyCompensatedException e) {
+            // ✅ Re-throw directly — compensation already published above, skip the catch logic
+            throw e;
         }
         catch(Exception e){
             sagaEventPublisher.publishEvent("BOOKING_COMPENSATED","COMPENSATE_BOOKING",sagaEvent.getPayload());
@@ -62,6 +67,9 @@ public class AvailabilityEventHandler {
             //  Booking cancelled — release lock so others can book these dates
             concurrencyControlStrategy.releaseLock(airbnbId, checkInDate, realCheckOut);
             log.info("Lock released after cancelling booking for airbnb {}", airbnbId);
+        }
+         catch (SagaAlreadyCompensatedException e) {
+            throw e; // pass through — already handled
         }
         catch(Exception e){
             sagaEventPublisher.publishEvent("BOOKING_COMPENSATED","COMPENSATE_BOOKING",sagaEvent.getPayload());

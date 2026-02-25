@@ -39,7 +39,7 @@ public class RedisReadRepository {
     public List<AvailabilityReadModel> getAvailabilityByAirbnbId(Long airbnbId) {
         String hashKey = AIRBNB_AVAILABILITY_PREFIX + airbnbId;
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(hashKey);
-        if (entries == null || entries.isEmpty()) return null; // null = cache miss
+        if (entries == null || entries.isEmpty()) return List.of(); // null = cache miss
         return entries.values().stream()
                 .map(v -> {
                     try {

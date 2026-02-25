@@ -2,6 +2,7 @@ package com.example.AirbnbDemo.cdc;
 
 import com.example.AirbnbDemo.Mapper.AirbnbMapper;
 import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
+import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -29,7 +30,7 @@ public class AirbnbCDCConsumer {
 
             if (deleted) {
                 String id = String.valueOf(payload.path("id").longValue());
-                redisTemplate.delete("airbnb:" + id);
+                redisTemplate.delete(RedisReadRepository.AIRBNB_KEY_PREFIX + id);
                 log.info("CDC deleted airbnb {} from Redis", id);
                 return;
             }
@@ -37,7 +38,7 @@ public class AirbnbCDCConsumer {
             AirbnbReadModel model = AirbnbMapper.toReadModelFromCDC(payload);
 
             redisTemplate.opsForValue().set(
-                    "airbnb:" + model.getId(),
+                    RedisReadRepository.AIRBNB_KEY_PREFIX + model.getId(),
                     objectMapper.writeValueAsString(model)
             );
             log.info("CDC synced airbnb {} to Redis", model.getId());

@@ -2,6 +2,7 @@ package com.example.AirbnbDemo.cdc;
 
 import com.example.AirbnbDemo.Mapper.BookingMapper;
 import com.example.AirbnbDemo.models.readModels.BookingReadModel;
+import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,11 +35,12 @@ public class BookingCDCConsumer {
             String idempotencyKey = payload.path("idempotency_key").stringValue();
             BookingReadModel model = BookingMapper.ToReadModelFromCDC(id,idempotencyKey,payload);
             redisTemplate.opsForValue().set(
-                    "booking:" + id,
+                    RedisReadRepository.BOOKING_KEY_PREFIX + id,
                     objectMapper.writeValueAsString(model)
             );
             if (idempotencyKey != null && !idempotencyKey.isBlank()) {
-                redisTemplate.opsForValue().set("idempotency:" + idempotencyKey, id.toString());
+                redisTemplate.opsForValue().set(
+                        RedisReadRepository.IDEMPOTENCY_KEY_PREFIX + idempotencyKey, id.toString());
                 log.info("CDC stored idempotency key {} → booking {}", idempotencyKey, id);
             }
             log.info("CDC synced booking {} to Redis", id);

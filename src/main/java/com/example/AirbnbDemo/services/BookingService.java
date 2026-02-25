@@ -58,7 +58,7 @@ public class BookingService implements IBookingService {
             throw new RuntimeException("Check-out date must be today or in the future");
         }
         if(checkIn.equals(checkOut)) {
-            throw new RuntimeException("Check-in date can be equal to Check-out date");
+            throw new RuntimeException("Check-in and check-out dates cannot be the same");
         }
 
         List<Availability> availabilities =
@@ -73,8 +73,13 @@ public class BookingService implements IBookingService {
         Booking booking = BookingMapper.toEntity(dto, user, airbnb, idempotencyKey, totalPrice);
 
 //        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
-        booking = bookingRepository.save(booking);
-        return booking;
+        try {
+            booking = bookingRepository.save(booking);
+            return booking;
+        } catch (Exception e) {
+            concurrencyControlStrategy.releaseLock(airbnb.getId(), checkIn, realCheckOut);
+            throw e;
+        }
     }
 
     @Override
@@ -106,22 +111,26 @@ public class BookingService implements IBookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookingReadModel getBookingById(Long id) {
         return  redisReadRepository.getBookingById(id)
                 .orElseThrow(()->new ResourceNotFoundException("Booking with Id :"+ id +" not found"));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingReadModel> getAllBookings() {
         return redisReadRepository.getAllBookings();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Booking> getUserBookingHistory(Long userId){
         return bookingRepository.findByUserId(userId);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Booking> getAirbnbBookingHistory(Long airbnbId) {
         return bookingRepository.findByAirbnbId(airbnbId);
     }
