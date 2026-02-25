@@ -1,6 +1,6 @@
 package com.example.AirbnbDemo.cdc;
 
-import com.example.AirbnbDemo.Mapper.AirbnbMapper;
+import com.example.AirbnbDemo.mapper.AirbnbMapper;
 import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import lombok.RequiredArgsConstructor;

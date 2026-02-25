@@ -1,10 +1,7 @@
 package com.example.AirbnbDemo.services;
 
-import com.example.AirbnbDemo.Mapper.BookingMapper;
-import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
-import com.example.AirbnbDemo.models.Airbnb;
+import com.example.AirbnbDemo.mapper.BookingMapper;
 import com.example.AirbnbDemo.models.Booking;
-import com.example.AirbnbDemo.models.User;
 import com.example.AirbnbDemo.models.readModels.BookingReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;

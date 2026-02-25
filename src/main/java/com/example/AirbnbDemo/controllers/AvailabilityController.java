@@ -1,6 +1,6 @@
 package com.example.AirbnbDemo.controllers;
 
-import com.example.AirbnbDemo.Mapper.AvailabilityMapper;
+import com.example.AirbnbDemo.mapper.AvailabilityMapper;
 import com.example.AirbnbDemo.dtos.AvailabilityDTO;
 import com.example.AirbnbDemo.dtos.CreateAvailabilityDTO;
 import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;

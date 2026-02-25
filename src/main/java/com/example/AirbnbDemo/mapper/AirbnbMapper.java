@@ -1,4 +1,4 @@
-package com.example.AirbnbDemo.Mapper;
+package com.example.AirbnbDemo.mapper;
 
 import com.example.AirbnbDemo.dtos.AirbnbDTO;
 import com.example.AirbnbDemo.dtos.CreateAirbnbDTO;

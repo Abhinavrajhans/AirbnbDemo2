@@ -1,6 +1,6 @@
 package com.example.AirbnbDemo.saga;
 
-import com.example.AirbnbDemo.Mapper.SagaEventMapper;
+import com.example.AirbnbDemo.mapper.SagaEventMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;

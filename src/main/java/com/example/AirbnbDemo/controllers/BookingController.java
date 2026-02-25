@@ -1,6 +1,6 @@
 package com.example.AirbnbDemo.controllers;
 
-import com.example.AirbnbDemo.Mapper.BookingMapper;
+import com.example.AirbnbDemo.mapper.BookingMapper;
 import com.example.AirbnbDemo.dtos.BookingDTO;
 import com.example.AirbnbDemo.dtos.CreateBookingDTO;
 import com.example.AirbnbDemo.dtos.UpdateBookingRequest;

@@ -1,6 +1,6 @@
 package com.example.AirbnbDemo.services;
 
-import com.example.AirbnbDemo.Mapper.UserMapper;
+import com.example.AirbnbDemo.mapper.UserMapper;
 import com.example.AirbnbDemo.dtos.CreateUserDTO;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.exceptions.UserEmailAlreadyExistsException;

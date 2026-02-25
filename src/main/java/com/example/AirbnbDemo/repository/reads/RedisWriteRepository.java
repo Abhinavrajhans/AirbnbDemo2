@@ -1,8 +1,8 @@
 package com.example.AirbnbDemo.repository.reads;
 
-import com.example.AirbnbDemo.Mapper.AirbnbMapper;
-import com.example.AirbnbDemo.Mapper.AvailabilityMapper;
-import com.example.AirbnbDemo.Mapper.BookingMapper;
+import com.example.AirbnbDemo.mapper.AirbnbMapper;
+import com.example.AirbnbDemo.mapper.AvailabilityMapper;
+import com.example.AirbnbDemo.mapper.BookingMapper;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.Availability;
 import com.example.AirbnbDemo.models.Booking;
@@ -15,9 +15,7 @@ import org.springframework.stereotype.Repository;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor

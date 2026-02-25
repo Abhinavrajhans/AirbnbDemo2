@@ -1,6 +1,6 @@
 package com.example.AirbnbDemo.services;
 
-import com.example.AirbnbDemo.Mapper.BookingMapper;
+import com.example.AirbnbDemo.mapper.BookingMapper;
 import com.example.AirbnbDemo.dtos.CreateBookingDTO;
 import com.example.AirbnbDemo.dtos.UpdateBookingRequest;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;

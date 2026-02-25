@@ -1,7 +1,7 @@
 package com.example.AirbnbDemo.controllers;
 
 
-import com.example.AirbnbDemo.Mapper.UserMapper;
+import com.example.AirbnbDemo.mapper.UserMapper;
 import com.example.AirbnbDemo.dtos.CreateUserDTO;
 import com.example.AirbnbDemo.dtos.UserDTO;
 import com.example.AirbnbDemo.models.User;
