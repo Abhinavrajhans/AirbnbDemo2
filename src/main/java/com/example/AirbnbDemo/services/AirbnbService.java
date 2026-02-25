@@ -20,14 +20,12 @@ public class AirbnbService implements IAirbnbService{
 
     private final AirbnbRepository airbnbRepository;
     private final RedisReadRepository redisReadRepository;
-    private final RedisWriteRepository redisWriteRepository;
 
     @Override
     @Transactional
     public Airbnb createAirbnb(CreateAirbnbDTO dto) {
         Airbnb airbnb= AirbnbMapper.toEntity(dto);
         airbnb=airbnbRepository.save(airbnb);
-        redisWriteRepository.writeAirbnb(airbnb);
         return airbnb;
     }
 
@@ -51,9 +49,7 @@ public class AirbnbService implements IAirbnbService{
         existing.setDescription(dto.getDescription());
         existing.setPricePerNight(dto.getPricePerNight());
         existing.setLocation(dto.getLocation());
-        Airbnb newAirbnb=airbnbRepository.save(existing);
-        redisWriteRepository.writeAirbnb(newAirbnb);
-        return newAirbnb;
+        return airbnbRepository.save(existing);
     }
 
     @Override
@@ -63,6 +59,5 @@ public class AirbnbService implements IAirbnbService{
             throw new ResourceNotFoundException("Airbnb with id " + id + " not found");
         }
         airbnbRepository.deleteById(id);
-        redisWriteRepository.deleteAirbnb(id);
     }
 }

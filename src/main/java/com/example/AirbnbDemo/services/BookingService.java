@@ -36,7 +36,6 @@ public class BookingService implements IBookingService {
     private final RedisReadRepository redisReadRepository;
     private final ConcurrencyControlStrategy concurrencyControlStrategy;
     private final SagaEventPublisher sagaEventPublisher;
-    private final RedisWriteRepository  redisWriteRepository;
 
     @Override
     @Transactional
@@ -75,7 +74,6 @@ public class BookingService implements IBookingService {
 
 //        sagaEventPublisher.publishEvent("BOOKING_CREATED","CREATE_BOOKING",payload);
         booking = bookingRepository.save(booking);
-        redisWriteRepository.writeBooking(booking);
         return booking;
     }
 

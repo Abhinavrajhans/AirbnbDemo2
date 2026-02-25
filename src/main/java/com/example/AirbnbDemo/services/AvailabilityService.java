@@ -23,7 +23,6 @@ public class AvailabilityService implements IAvailabilityService {
     private final AvailabilityRepository availabilityRepository;
     private final AirbnbRepository airbnbRepository;
     private final RedisReadRepository redisReadRepository;
-    private final RedisWriteRepository redisWriteRepository;
 
 
     @Override
@@ -33,7 +32,6 @@ public class AvailabilityService implements IAvailabilityService {
                 .orElseThrow(() -> new ResourceNotFoundException("Airbnb with Id:"+ dto.getAirbnbId() +" not found"));
         Availability availability = AvailabilityMapper.toEntity(dto, airbnb);
         availability=availabilityRepository.save(availability);
-        redisWriteRepository.writeAvailability(availability);
         return availability;
     }
 

@@ -20,7 +20,6 @@ public class BookingEventHandler {
 
     private final BookingRepository bookingRepository;
     private final SagaEventPublisher sagaEventPublisher;
-    private final RedisWriteRepository redisWriteRepository;
 
 
     @Transactional
@@ -35,7 +34,6 @@ public class BookingEventHandler {
                     .orElseThrow(()-> new ResourceNotFoundException("Booking With Id:"+bookingId+" Not Found"));
             booking.setStatus(BookingStatus.CONFIRMED);
             bookingRepository.save(booking);
-            redisWriteRepository.writeBooking(booking);
             sagaEventPublisher.publishEvent("BOOKING_CONFIRMED","CONFIRM_BOOKING",sagaEvent.getPayload());
         }
         catch(Exception e){
@@ -56,7 +54,6 @@ public class BookingEventHandler {
                     .orElseThrow(()-> new ResourceNotFoundException("Booking With Id:"+bookingId+" Not Found"));
             booking.setStatus(BookingStatus.CANCELLED);
             bookingRepository.save(booking);
-            redisWriteRepository.writeBooking(booking);
             sagaEventPublisher.publishEvent("BOOKING_CANCELLED","CANCEL_BOOKING",sagaEvent.getPayload());
         }
         catch(Exception e){
