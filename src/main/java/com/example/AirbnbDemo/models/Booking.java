@@ -5,7 +5,13 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "bookings")
+@Table(
+    name = "bookings",
+    indexes = {
+        @Index(name = "idx_booking_user_id",   columnList = "user_id"),
+        @Index(name = "idx_booking_airbnb_id", columnList = "airbnb_id")
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -41,7 +47,7 @@ public class Booking extends BaseModel {
     private LocalDate checkOutDate;
 
     public String toString(){
-        return user.getId()+" "+airbnb.getId()+" "+totalPrice;
+        return idempotencyKey;
     }
 
 }

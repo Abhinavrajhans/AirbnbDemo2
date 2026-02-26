@@ -5,7 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+        @Index(name = "idx_user_email", columnList = "email", unique = true)
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,7 +21,7 @@ public class User extends BaseModel {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
