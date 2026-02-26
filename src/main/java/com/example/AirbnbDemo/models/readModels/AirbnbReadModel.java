@@ -2,8 +2,6 @@ package com.example.AirbnbDemo.models.readModels;
 
 import lombok.*;
 
-import java.util.List;
-
 @Getter
 @Setter
 @NoArgsConstructor

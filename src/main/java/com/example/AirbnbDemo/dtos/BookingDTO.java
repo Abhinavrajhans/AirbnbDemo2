@@ -1,8 +1,6 @@
 package com.example.AirbnbDemo.dtos;
 
-import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.BookingStatus;
-import com.example.AirbnbDemo.models.User;
 import lombok.*;
 
 import java.time.LocalDate;
