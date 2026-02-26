@@ -55,6 +55,26 @@ public class AvailabilityEventHandler {
         }
     }
 
+    /**
+     * Releases the booking lock when the saga is fully compensated (all retries failed
+     * or an unexpected error occurred). Prevents the lock from holding for the full TTL.
+     */
+    public void handleBookingCompensated(SagaEvent sagaEvent) {
+        try {
+            Map<String, Object> payload = sagaEvent.getPayload();
+            Long airbnbId   = Long.parseLong(payload.get("airbnbId").toString());
+            Long userId     = Long.parseLong(payload.get("userId").toString());
+            LocalDate checkInDate  = LocalDate.parse(payload.get("checkInDate").toString());
+            LocalDate checkOutDate = LocalDate.parse(payload.get("checkOutDate").toString());
+            LocalDate realCheckOut = checkOutDate.minusDays(1);
+            concurrencyControlStrategy.releaseBookingLock(airbnbId, checkInDate, realCheckOut, userId);
+            log.info("Lock released after saga compensation for airbnb {}", airbnbId);
+        } catch (Exception e) {
+            // Lock release is best-effort — TTL will expire it if this fails
+            log.error("Failed to release lock on saga compensation: {}", e.getMessage());
+        }
+    }
+
     @Transactional
     public void handleBookingCancelled(SagaEvent sagaEvent) {
         try{

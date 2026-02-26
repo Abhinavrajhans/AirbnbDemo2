@@ -33,7 +33,8 @@ public class SagaEventProcessor {
                 availabilityEventHandler.handleBookingCancelled(sagaEvent);
                 break;
             case "BOOKING_COMPENSATED":
-                log.info("Booking compensated  for booking id: {}",sagaEvent.getPayload().get("bookingId"));
+                log.info("Booking compensated for booking id: {}", sagaEvent.getPayload().get("bookingId"));
+                availabilityEventHandler.handleBookingCompensated(sagaEvent);
                 break;
             case "TEST_FAILURE":
                 throw new RuntimeException("Simulated failure for DLQ testing");

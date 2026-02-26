@@ -4,6 +4,7 @@ import com.example.AirbnbDemo.models.Availability;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,12 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
 
     private static final String LOCK_KEY_PREFIX="lock:availability:";
     private static final String LOCK_KEY_UPDATE_PREFIX = "lock:booking:update:";
-    private static final Duration LOCK_TIMEOUT = Duration.ofMinutes(5); // make this configurable
+
+    @Value("${booking.lock.ttl-minutes:5}")
+    private long lockTtlMinutes;
+
+    @Value("${booking.lock.update-ttl-seconds:10}")
+    private long updateLockTtlSeconds;
 
     private final RedisTemplate<String,String> redisTemplate;
     private final AvailabilityRepository availabilityRepository;
@@ -55,7 +61,7 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
     @Override
     public List<Availability> lockAndCheckAvailability(Long airbnbId, LocalDate checkInDate, LocalDate checkOutDate,Long userId) {
         String lockKey=generateLockKey(airbnbId,checkInDate,checkOutDate);
-        Boolean locked=redisTemplate.opsForValue().setIfAbsent(lockKey,userId.toString(),LOCK_TIMEOUT);
+        Boolean locked=redisTemplate.opsForValue().setIfAbsent(lockKey,userId.toString(),Duration.ofMinutes(lockTtlMinutes));
         if (!Boolean.TRUE.equals(locked)) {
             throw new IllegalStateException("Failed to acquire booking for the given dates. Please try again.");
         }
@@ -70,7 +76,7 @@ public class RedisLockStrategy implements ConcurrencyControlStrategy {
         String lockValue = UUID.randomUUID().toString();
         // Try to acquire lock — only ONE request wins
         Boolean locked = redisTemplate.opsForValue()
-                .setIfAbsent(lockKey, lockValue, Duration.ofSeconds(10));
+                .setIfAbsent(lockKey, lockValue, Duration.ofSeconds(updateLockTtlSeconds));
         if (!Boolean.TRUE.equals(locked)) return null;
         return lockValue;
     }
