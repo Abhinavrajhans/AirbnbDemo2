@@ -1,6 +1,7 @@
 package com.example.AirbnbDemo.repository.writes;
 
 import com.example.AirbnbDemo.models.Availability;
+import com.example.AirbnbDemo.models.AvailabilityId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface AvailabilityRepository extends JpaRepository<Availability, Long> {
+public interface AvailabilityRepository extends JpaRepository<Availability, AvailabilityId> {
     List<Availability> findByAirbnbId(Long airbnbId);
     List<Availability> findByAirbnbIdAndDateBetween(Long airbnbId, LocalDate startDate, LocalDate endDate);
     Long countByAirbnbIdAndDateBetweenAndBookingIsNotNull(Long airbnbId, LocalDate startDate, LocalDate endDate);

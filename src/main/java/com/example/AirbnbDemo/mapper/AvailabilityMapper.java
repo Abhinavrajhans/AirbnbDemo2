@@ -21,7 +21,6 @@ public class AvailabilityMapper {
 
     public static AvailabilityDTO toDTO(Availability availability) {
         return AvailabilityDTO.builder()
-                .id(availability.getId())
                 .airbnbId(availability.getAirbnb().getId())
                 .bookingId(availability.getBooking() != null ? availability.getBooking().getId() : null)
                 .isAvailable(availability.getIsAvailable())
@@ -31,7 +30,6 @@ public class AvailabilityMapper {
 
     public static AvailabilityReadModel toReadModel(Availability availability) {
         return AvailabilityReadModel.builder()
-                .id(availability.getId())
                 .airbnbId(availability.getAirbnb().getId())
                 .date(availability.getDate().toString())
                 .bookingId(availability.getBooking() != null ? availability.getBooking().getId() : null)
@@ -39,15 +37,12 @@ public class AvailabilityMapper {
                 .build();
     }
 
-    public static AvailabilityReadModel toReadModelFromCDC(Long airbnbId,String date,JsonNode payload){
-
-        return  AvailabilityReadModel.builder()
-                .id(payload.path("id").longValue())
+    public static AvailabilityReadModel toReadModelFromCDC(Long airbnbId, String date, JsonNode payload) {
+        return AvailabilityReadModel.builder()
                 .airbnbId(airbnbId)
                 .date(date)
                 .bookingId(payload.path("booking_id").isNull() ? null : payload.path("booking_id").longValue())
                 .isAvailable(payload.path("is_available").booleanValue())
                 .build();
-
     }
 }
