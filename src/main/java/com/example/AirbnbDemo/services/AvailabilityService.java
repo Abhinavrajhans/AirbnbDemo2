@@ -2,9 +2,11 @@ package com.example.AirbnbDemo.services;
 
 import com.example.AirbnbDemo.mapper.AvailabilityMapper;
 import com.example.AirbnbDemo.dtos.CreateAvailabilityDTO;
+import com.example.AirbnbDemo.exceptions.AvailabilityAlreadyExistsException;
 import com.example.AirbnbDemo.exceptions.ResourceNotFoundException;
 import com.example.AirbnbDemo.models.Airbnb;
 import com.example.AirbnbDemo.models.Availability;
+import com.example.AirbnbDemo.models.AvailabilityId;
 import com.example.AirbnbDemo.models.readModels.AvailabilityReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
@@ -29,6 +31,11 @@ public class AvailabilityService implements IAvailabilityService {
     @Override
     @Transactional
     public Availability createAvailability(CreateAvailabilityDTO dto) {
+        AvailabilityId id = new AvailabilityId(dto.getAirbnbId(), dto.getDate());
+        if (availabilityRepository.existsById(id)) {
+            throw new AvailabilityAlreadyExistsException(
+                    "Availability for airbnbId " + dto.getAirbnbId() + " on date " + dto.getDate() + " already exists");
+        }
         Airbnb airbnb = airbnbRepository.findById(dto.getAirbnbId())
                 .orElseThrow(() -> new ResourceNotFoundException("Airbnb with Id:"+ dto.getAirbnbId() +" not found"));
         Availability availability = AvailabilityMapper.toEntity(dto, airbnb);

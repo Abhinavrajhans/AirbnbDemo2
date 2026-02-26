@@ -24,6 +24,16 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler(AvailabilityAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleAvailabilityAlreadyExistsException(AvailabilityAlreadyExistsException ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("timestamp", LocalDateTime.now());
+        error.put("message", ex.getMessage());
+        error.put("status", HttpStatus.CONFLICT.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFoundException(ResourceNotFoundException ex) {
         Map<String, Object> error = new HashMap<>();
