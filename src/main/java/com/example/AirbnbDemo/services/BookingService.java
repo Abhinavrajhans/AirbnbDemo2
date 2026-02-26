@@ -164,14 +164,24 @@ public class BookingService implements IBookingService {
     @Override
     @Transactional(readOnly = true)
     public BookingReadModel getBookingById(Long id) {
-        return  redisReadRepository.getBookingById(id)
-                .orElseThrow(()->new ResourceNotFoundException("Booking with Id :"+ id +" not found"));
+        return redisReadRepository.getBookingById(id)
+                .orElseGet(() -> {
+                    log.warn("Cache miss for booking {}, falling back to DB", id);
+                    return bookingRepository.findById(id)
+                            .map(BookingMapper::toReadModel)
+                            .orElseThrow(() -> new ResourceNotFoundException("Booking with Id :" + id + " not found"));
+                });
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<BookingReadModel> getAllBookings() {
-        return redisReadRepository.getAllBookings();
+        List<BookingReadModel> cached = redisReadRepository.getAllBookings();
+        if (!cached.isEmpty()) return cached;
+        log.warn("Cache miss for all bookings, falling back to DB");
+        return bookingRepository.findAll().stream()
+                .map(BookingMapper::toReadModel)
+                .toList();
     }
 
     @Override

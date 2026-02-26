@@ -10,6 +10,7 @@ import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import com.example.AirbnbDemo.repository.writes.AvailabilityRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AvailabilityService implements IAvailabilityService {
 
     private final AvailabilityRepository availabilityRepository;
@@ -38,6 +40,11 @@ public class AvailabilityService implements IAvailabilityService {
     @Override
     @Transactional(readOnly = true)
     public List<AvailabilityReadModel> checkAvailability(Long airbnbId) {
-       return redisReadRepository.getAvailabilityByAirbnbId(airbnbId);
+        List<AvailabilityReadModel> cached = redisReadRepository.getAvailabilityByAirbnbId(airbnbId);
+        if (!cached.isEmpty()) return cached;
+        log.warn("Cache miss for availability of airbnb {}, falling back to DB", airbnbId);
+        return availabilityRepository.findByAirbnbId(airbnbId).stream()
+                .map(AvailabilityMapper::toReadModel)
+                .toList();
     }
 }

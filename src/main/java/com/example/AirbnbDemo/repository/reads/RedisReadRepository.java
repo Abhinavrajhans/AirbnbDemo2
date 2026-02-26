@@ -22,7 +22,7 @@ public class RedisReadRepository {
     public static final String BOOKING_KEY_PREFIX = "booking:";
     public static final String AVAILABLE_KEY_PREFIX = "available:";
     public static final String IDEMPOTENCY_KEY_PREFIX = "idempotency:";
-    public static final String AIRBNB_AVAILABILITY_PREFIX = "airbnb:availability:";
+    public static final String AVAILABILITY_AIRBNB_PREFIX = "availability:airbnb:";
 
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
@@ -37,7 +37,7 @@ public class RedisReadRepository {
 
     // Get ALL availability for an airbnb — single round trip O(1)
     public List<AvailabilityReadModel> getAvailabilityByAirbnbId(Long airbnbId) {
-        String hashKey = AIRBNB_AVAILABILITY_PREFIX + airbnbId;
+        String hashKey = AVAILABILITY_AIRBNB_PREFIX + airbnbId;
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(hashKey);
         if (entries == null || entries.isEmpty()) return List.of(); // null = cache miss
         return entries.values().stream()
@@ -53,7 +53,7 @@ public class RedisReadRepository {
 
     // Get a single date's availability
     public AvailabilityReadModel getAvailabilityByAirbnbIdAndDate(Long airbnbId, String date) {
-        String hashKey = AIRBNB_AVAILABILITY_PREFIX + airbnbId;
+        String hashKey = AVAILABILITY_AIRBNB_PREFIX + airbnbId;
         String value = (String) redisTemplate.opsForHash().get(hashKey, date);
         if (value == null) return null;
         try {

@@ -33,7 +33,7 @@ public class RedisWriteRepository {
         // Write a single availability slot into the airbnb's hash
         public void writeAvailability(Availability availability) {
             AvailabilityReadModel model = AvailabilityMapper.toReadModel(availability);
-            String hashKey = RedisReadRepository.AIRBNB_AVAILABILITY_PREFIX + model.getAirbnbId();
+            String hashKey = RedisReadRepository.AVAILABILITY_AIRBNB_PREFIX + model.getAirbnbId();
             String field = model.getDate(); // "2025-01-01"
             try {
                 redisTemplate.opsForHash().put(hashKey, field, objectMapper.writeValueAsString(model));
@@ -44,7 +44,7 @@ public class RedisWriteRepository {
 
         public void writeAvailabilities(Long airbnbId, List<Availability> availabilities) {
             if (availabilities == null || availabilities.isEmpty()) return;
-            String hashKey = RedisReadRepository.AIRBNB_AVAILABILITY_PREFIX + airbnbId;
+            String hashKey = RedisReadRepository.AVAILABILITY_AIRBNB_PREFIX + airbnbId;
             for (Availability a : availabilities) {
                 AvailabilityReadModel model = AvailabilityMapper.toReadModel(a);
                 try {

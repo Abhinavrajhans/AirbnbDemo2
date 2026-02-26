@@ -8,6 +8,7 @@ import com.example.AirbnbDemo.models.readModels.AirbnbReadModel;
 import com.example.AirbnbDemo.repository.reads.RedisReadRepository;
 import com.example.AirbnbDemo.repository.writes.AirbnbRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AirbnbService implements IAirbnbService{
 
     private final AirbnbRepository airbnbRepository;
@@ -31,12 +33,22 @@ public class AirbnbService implements IAirbnbService{
     @Override
     public AirbnbReadModel getAirbnbById(Long id) {
         return redisReadRepository.getAirbnbById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Airbnb with ID :"+id+" not found"));
+                .orElseGet(() -> {
+                    log.warn("Cache miss for airbnb {}, falling back to DB", id);
+                    return airbnbRepository.findById(id)
+                            .map(AirbnbMapper::toReadModel)
+                            .orElseThrow(() -> new ResourceNotFoundException("Airbnb with ID :" + id + " not found"));
+                });
     }
 
     @Override
     public List<AirbnbReadModel> getAllAirbnbs() {
-        return redisReadRepository.getAllAirbnbs();
+        List<AirbnbReadModel> cached = redisReadRepository.getAllAirbnbs();
+        if (!cached.isEmpty()) return cached;
+        log.warn("Cache miss for all airbnbs, falling back to DB");
+        return airbnbRepository.findAll().stream()
+                .map(AirbnbMapper::toReadModel)
+                .toList();
     }
 
     @Override

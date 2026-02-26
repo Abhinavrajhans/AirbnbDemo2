@@ -40,7 +40,7 @@ public class AvailabilityCDCConsumer {
             String date = LocalDate.ofEpochDay(epochDays).toString(); // → "2026-02-25"
             AvailabilityReadModel model = AvailabilityMapper.toReadModelFromCDC(airbnbId,date,payload);
             redisTemplate.opsForHash().put(
-                    RedisReadRepository.AIRBNB_AVAILABILITY_PREFIX + airbnbId,
+                    RedisReadRepository.AVAILABILITY_AIRBNB_PREFIX + airbnbId,
                     date,
                     objectMapper.writeValueAsString(model)
             );
